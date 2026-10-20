@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Node / Electron
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist-electron/
+dist/
+
+# Swift / macOS build
+Build/
+*.app
+tmp_dmg_staging/
+tmp_stage_*
+
+# Binary Installers (questi vanno caricati nella sezione Releases di GitHub, non nel repo git)
+*.dmg
+*.exe
+*.blockmap
+*.7z

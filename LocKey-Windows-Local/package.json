@@ -1,0 +1,36 @@
+{
+  "name": "lockey-desktop",
+  "version": "1.0.0",
+  "description": "LocKey - Local Offline Password Manager by BiragoDev (www.biragodev.it)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64"
+  },
+  "author": "BiragoDev <info@biragodev.it> (https://www.biragodev.it)",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.lockey.desktop",
+    "productName": "LocKey",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "../dist/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "../extension/icons/icon256.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
