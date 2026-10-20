@@ -72,12 +72,12 @@ Tutte le operazioni crittografiche avvengono sul dispositivo locale prima di toc
 
 ## 📥 Download
 
-Scarica l'ultima versione stabile dalla sezione **[Releases](https://github.com/biragodev/lockey/releases)** o direttamente dal sito ufficiale:
+Scarica l'ultima versione stabile dalla sezione **[Releases](https://github.com/biragodevelopers-lgtm/LocKey/releases)** o direttamente dal sito ufficiale:
 
 | Sistema Operativo | Formato | Download |
 | :--- | :--- | :--- |
-| **macOS** *(Apple Silicon & Intel)* | `.dmg` Installer | [Scarica per Mac](https://github.com/biragodev/lockey/releases/latest) |
-| **Windows** *(10 / 11 a 64-bit)* | `.exe` Setup NSIS | [Scarica per Windows](https://github.com/biragodev/lockey/releases/latest) |
+| **macOS** *(Apple Silicon & Intel)* | `.dmg` Installer | [Scarica per Mac](https://github.com/biragodevelopers-lgtm/LocKey/releases/latest) |
+| **Windows** *(10 / 11 a 64-bit)* | `.exe` Setup NSIS | [Scarica per Windows](https://github.com/biragodevelopers-lgtm/LocKey/releases/latest) |
 
 ---
 
