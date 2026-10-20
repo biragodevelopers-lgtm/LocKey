@@ -290,7 +290,7 @@ public final class VaultStore: ObservableObject {
     
     /// Esporta il vault decifrato in un file JSON cifrato con una password di backup.
     public func exportBackup(to url: URL, password: String) throws {
-        guard isUnlocked, let key = vaultKey else {
+        guard isUnlocked, vaultKey != nil else {
             throw CryptoError.decryptionFailed("Vault non sbloccato.")
         }
         
@@ -336,9 +336,9 @@ public final class VaultStore: ObservableObject {
         try fileData.write(to: url, options: .atomic)
     }
     
-    /// Importa il vault da un file .lockey decifrandolo con la password fornita.
+    /// Importa il vault da un file .lockey decifrandolo con una password fornita.
     public func importBackup(from url: URL, password: String) throws {
-        guard isUnlocked, let key = vaultKey else {
+        guard isUnlocked, vaultKey != nil else {
             throw CryptoError.decryptionFailed("Vault non sbloccato per l'importazione.")
         }
         

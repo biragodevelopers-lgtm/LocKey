@@ -61,11 +61,15 @@ EOF
 
 # Genera l'icona dell'applicazione se esiste l'immagine base
 ICON_BASE="./Resources/app_icon_base.png"
-ICONSET_DIR="./Resources/AppIcon.iconset"
+ICONSET_DIR="/tmp/LocKey_$$.iconset"
 ICNS_FILE="./Resources/AppIcon.icns"
 
-if [ -f "${ICON_BASE}" ]; then
+if [ -f "${ICNS_FILE}" ]; then
+    echo "➡️  [1.5] Copia del file icone .icns esistente..."
+    cp "${ICNS_FILE}" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+elif [ -f "${ICON_BASE}" ]; then
     echo "➡️  [1.5] Generazione del file icone .icns..."
+    rm -rf "${ICONSET_DIR}"
     mkdir -p "${ICONSET_DIR}"
     
     # Ridimensiona l'immagine per tutti i formati richiesti da macOS tramite sips, forzando il formato PNG

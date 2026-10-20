@@ -14,7 +14,7 @@ public struct MainSplitView: View {
     @State private var showAbout = false
     @State private var showAddGroup = false
     @State private var newGroupName = ""
-    @State private var newGroupIcon = "folder"
+    @State private var newGroupIcon = "folder.fill"
     
     @State private var showAddApp = false
     @State private var newAppName = ""
@@ -25,6 +25,7 @@ public struct MainSplitView: View {
     @State private var credentialTitle = ""
     @State private var credentialUsername = ""
     @State private var credentialPassword = ""
+    @State private var showPasswordInSheet = false
     @State private var credentialNotes = ""
     @State private var credentialUrl = ""
     @State private var credentialTotp = ""
@@ -42,8 +43,11 @@ public struct MainSplitView: View {
     @State private var updateCheckResult: String? = nil
     @State private var updateDownloadURL: URL? = nil
     
-    // Lista di icone SF Symbols predefinite per i Gruppi
-    private let groupIcons = ["folder", "briefcase", "person.fill", "house.fill", "creditcard.fill", "gamecontroller.fill", "cart.fill", "heart.fill"]
+    // Griglia 4x2 di icone SF Symbols per i Gruppi
+    private let groupIcons = [
+        "folder.fill", "briefcase.fill", "person.fill", "house.fill",
+        "creditcard.fill", "gamecontroller.fill", "cart.fill", "heart.fill"
+    ]
     
     public init(vaultStore: VaultStore) {
         self.vaultStore = vaultStore
@@ -67,6 +71,7 @@ public struct MainSplitView: View {
         }
         return group.applications.filter { app in
             app.name.localizedCaseInsensitiveContains(searchQuery) ||
+            app.website.localizedCaseInsensitiveContains(searchQuery) ||
             app.credentials.contains { cred in
                 let dec = vaultStore.decryptCredential(cred)
                 return dec.title.localizedCaseInsensitiveContains(searchQuery) ||
@@ -77,92 +82,168 @@ public struct MainSplitView: View {
     
     public var body: some View {
         NavigationSplitView {
-            // COLONNA 1: Sidebar (Gruppi)
+            // COLONNA 1: Sidebar (Brand Header + Gruppi + Azioni)
             VStack(spacing: 0) {
+                // Header con Icona Programma in alto a sinistra + Pulsanti Info & Menu sempre visibili
+                HStack(spacing: 10) {
+                    Image(nsImage: NSApp.applicationIconImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 32, height: 32)
+                        .cornerRadius(8)
+                        .shadow(color: .purple.opacity(0.25), radius: 4, x: 0, y: 2)
+                    
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("LocKey")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                        Text("Vault Protetto")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Pulsante Informazioni (sempre visibile, sia in finestra che a tutto schermo)
+                    Button(action: { showAbout = true }) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: 26, height: 26)
+                            .background(Color.primary.opacity(0.05))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Informazioni su LocKey & Aggiornamenti")
+                    
+                    // Menu Opzioni Backup (sempre visibile, sia in finestra che a tutto schermo)
+                    Menu {
+                        Button(action: exportBackupFlow) {
+                            Label("Esporta Backup Cifrato (.lockey)", systemImage: "square.and.arrow.up")
+                        }
+                        Button(action: importBackupFlow) {
+                            Label("Importa Backup (.lockey)", systemImage: "square.and.arrow.down")
+                        }
+                        Divider()
+                        Button(action: { showAbout = true; checkForUpdates() }) {
+                            Label("Verifica Aggiornamenti...", systemImage: "arrow.triangle.2.circlepath")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: 26, height: 26)
+                            .background(Color.primary.opacity(0.05))
+                            .cornerRadius(6)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .frame(width: 26)
+                    .help("Backup e Opzioni del Vault")
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 10)
+                .padding(.bottom, 10)
+                
+                Divider().opacity(0.3)
+                
+                // Lista Gruppi
                 List(selection: $selectedGroupID) {
-                    Section {
+                    Section("I Tuoi Gruppi") {
                         ForEach(vaultStore.groups) { group in
                             NavigationLink(value: group.id) {
-                                HStack {
+                                HStack(spacing: 8) {
                                     Image(systemName: group.icon)
+                                        .font(.system(size: 13, weight: .semibold))
                                         .foregroundColor(.purple)
+                                        .frame(width: 20)
                                     Text(group.name)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .lineLimit(1)
                                     Spacer()
                                     Text("\(group.applications.count)")
-                                        .font(.caption)
+                                        .font(.system(size: 11, weight: .semibold))
                                         .foregroundColor(.secondary)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 1)
+                                        .background(Color.primary.opacity(0.06))
+                                        .cornerRadius(6)
+                                }
+                                .padding(.vertical, 2)
+                            }
+                            .contextMenu {
+                                Button(role: .destructive, action: { deleteGroup(group) }) {
+                                    Label("Elimina Gruppo", systemImage: "trash")
                                 }
                             }
-                        }
-                    } header: {
-                        HStack {
-                            Text("Gruppi")
-                            Spacer()
-                            Button(action: { vaultStore.lock() }) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .help("Blocca Vault (Cmd + L)")
                         }
                     }
                 }
                 .listStyle(.sidebar)
                 
-                // Tasto aggiungi gruppo
-                Button(action: { showAddGroup = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Nuovo Gruppo")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.purple.opacity(0.12))
-                    .cornerRadius(8)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 6)
-                }
-                .buttonStyle(.plain)
-                
-                // Pulsante Blocca Vault principale e sempre visibile
-                Button(action: { vaultStore.lock() }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 13, weight: .bold))
-                        Text("Blocca Vault")
-                            .font(.system(size: 13, weight: .semibold))
-                        Spacer()
-                        Text("⌘L")
-                            .font(.caption2.bold())
-                            .opacity(0.8)
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(
-                        LinearGradient(colors: [Color.red.opacity(0.9), Color.pink.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
-                    )
-                    .cornerRadius(8)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut("l", modifiers: .command)
-                .help("Blocca immediatamente il Vault (Cmd + L)")
-                
-                // Branding BiragoDev & Verifica Aggiornamenti Footer
-                VStack(spacing: 4) {
+                // Sezione Pulsanti Inferiori Sidebar
+                VStack(spacing: 8) {
                     Divider().opacity(0.3)
-                        .padding(.vertical, 4)
                     
+                    // Tasto Nuovo Gruppo
+                    Button(action: {
+                        newGroupName = ""
+                        newGroupIcon = "folder.fill"
+                        showAddGroup = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.purple)
+                            Text("Nuovo Gruppo")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Color.purple.opacity(0.12))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 12)
+                    
+                    // UNICO Pulsante Blocca Vault (senza duplicati in alto)
+                    Button(action: { vaultStore.lock() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("Blocca Vault")
+                                .font(.system(size: 13, weight: .semibold))
+                            Spacer()
+                            Text("⌘L")
+                                .font(.caption2.bold())
+                                .opacity(0.85)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.red.opacity(0.88), Color.pink.opacity(0.78)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    .keyboardShortcut("l", modifiers: .command)
+                    .help("Blocca immediatamente il Vault (Cmd + L)")
+                    .padding(.horizontal, 12)
+                    
+                    // Pulsante Verifica Aggiornamenti
                     Button(action: { showAbout = true; checkForUpdates() }) {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.blue)
                             Text("Verifica aggiornamenti")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.primary)
+                                .lineLimit(1)
                             Spacer()
                             Text("v1.0.1")
                                 .font(.system(size: 10, weight: .bold))
@@ -172,8 +253,8 @@ public struct MainSplitView: View {
                                 .cornerRadius(4)
                                 .foregroundColor(.blue)
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
                         .background(Color.primary.opacity(0.04))
                         .cornerRadius(6)
                     }
@@ -181,6 +262,7 @@ public struct MainSplitView: View {
                     .help("Verifica disponibilità nuove versioni di LocKey")
                     .padding(.horizontal, 12)
                     
+                    // Footer Branding
                     HStack {
                         Image(systemName: "checkmark.shield.fill")
                             .foregroundColor(.green)
@@ -190,140 +272,267 @@ public struct MainSplitView: View {
                             .foregroundColor(.secondary)
                         Spacer()
                         Link("BiragoDev", destination: URL(string: "https://www.biragodev.it")!)
-                            .font(.caption2)
+                            .font(.caption2.weight(.semibold))
                             .foregroundColor(.blue)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.top, 4)
-                    .padding(.bottom, 6)
+                    .padding(.top, 2)
+                    .padding(.bottom, 8)
                 }
             }
-            .navigationTitle("LocKey")
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
-                    Button(action: { vaultStore.lock() }) {
-                        Label("Blocca", systemImage: "lock.fill")
-                    }
-                    .help("Blocca immediatamente il Vault (Cmd + L)")
-                    .keyboardShortcut("l", modifiers: .command)
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    HStack(spacing: 8) {
-                        Button(action: { showAbout = true }) {
-                            Image(systemName: "info.circle")
-                        }
-                        .help("Informazioni su LocKey & Aggiornamenti")
-                        
-                        Menu {
-                            Button(action: exportBackupFlow) {
-                                Label("Esporta Backup Cifrato", systemImage: "square.and.arrow.up")
-                            }
-                            Button(action: importBackupFlow) {
-                                Label("Importa Backup (.lockey)", systemImage: "square.and.arrow.down")
-                            }
-                            Divider()
-                            Button(action: { showAbout = true; checkForUpdates() }) {
-                                Label("Cerca Aggiornamenti...", systemImage: "arrow.triangle.2.circlepath")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                        }
-                        .menuStyle(.borderlessButton)
-                        .help("Opzioni del Vault (Backup)")
-                    }
-                }
-            }
+            .navigationSplitViewColumnWidth(min: 210, ideal: 230, max: 280)
         } content: {
             // COLONNA 2: Lista Applicazioni
-            VStack {
+            VStack(spacing: 0) {
                 if let group = selectedGroup {
-                    List(selection: $selectedAppID) {
-                        Section(group.name) {
+                    // Header Colonna Applicazioni
+                    HStack {
+                        Image(systemName: group.icon)
+                            .foregroundColor(.purple)
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(group.name)
+                            .font(.system(size: 15, weight: .bold))
+                            .lineLimit(1)
+                        Spacer()
+                        Button(action: {
+                            newAppName = ""
+                            newAppWebsite = ""
+                            showAddApp = true
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.blue)
+                                .frame(width: 26, height: 26)
+                                .background(Color.blue.opacity(0.12))
+                                .cornerRadius(6)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Aggiungi Applicazione")
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    
+                    Divider().opacity(0.3)
+                    
+                    if group.applications.isEmpty {
+                        Spacer()
+                        VStack(spacing: 14) {
+                            Image(systemName: "app.badge.plus")
+                                .font(.system(size: 40))
+                                .foregroundColor(.secondary.opacity(0.5))
+                            Text("Nessuna applicazione")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Text("Aggiungi un servizio o sito web (es. Google, Amazon, Banca) in \"\(group.name)\".")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                            
+                            Button(action: {
+                                newAppName = ""
+                                newAppWebsite = ""
+                                showAddApp = true
+                            }) {
+                                Label("Aggiungi Applicazione", systemImage: "plus")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                    } else {
+                        List(selection: $selectedAppID) {
                             ForEach(filteredApplications) { app in
                                 NavigationLink(value: app.id) {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(app.name)
-                                            .font(.headline)
-                                        if !app.website.isEmpty {
-                                            Text(app.website)
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
+                                    HStack(spacing: 10) {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 7)
+                                                .fill(Color.blue.opacity(0.12))
+                                                .frame(width: 30, height: 30)
+                                            Text(String(app.name.prefix(1)).uppercased())
+                                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                                .foregroundColor(.blue)
                                         }
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(app.name)
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .lineLimit(1)
+                                            if !app.website.isEmpty {
+                                                Text(app.website)
+                                                    .font(.system(size: 11))
+                                                    .foregroundColor(.secondary)
+                                                    .lineLimit(1)
+                                            }
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(app.credentials.count)")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.primary.opacity(0.06))
+                                            .cornerRadius(6)
+                                    }
+                                    .padding(.vertical, 3)
+                                }
+                                .contextMenu {
+                                    Button(role: .destructive, action: { deleteSingleApplication(app) }) {
+                                        Label("Elimina Applicazione", systemImage: "trash")
                                     }
                                 }
                             }
                             .onDelete(perform: deleteApplication)
                         }
+                        .searchable(text: $searchQuery, prompt: "Cerca app o account...")
                     }
-                    .searchable(text: $searchQuery, prompt: "Cerca app o account...")
                     
-                    Spacer()
+                    Divider().opacity(0.3)
                     
-                    Button(action: { showAddApp = true }) {
-                        HStack {
-                            Image(systemName: "plus")
+                    Button(action: {
+                        newAppName = ""
+                        newAppWebsite = ""
+                        showAddApp = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.blue)
                             Text("Aggiungi Applicazione")
+                                .font(.system(size: 13, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(Color.blue.opacity(0.1))
                         .cornerRadius(8)
-                        .padding()
+                        .padding(12)
                     }
                     .buttonStyle(.plain)
                 } else {
-                    Text("Seleziona un Gruppo")
-                        .foregroundColor(.secondary)
-                        .font(.headline)
+                    VStack(spacing: 14) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 42))
+                            .foregroundColor(.secondary.opacity(0.45))
+                        Text("Seleziona o crea un Gruppo")
+                            .foregroundColor(.secondary)
+                            .font(.headline)
+                        Text("Organizza le tue password in gruppi (es. Personale, Lavoro, Finanza).")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationTitle(selectedGroup?.name ?? "Seleziona")
+            .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } detail: {
             // COLONNA 3: Dettagli Applicazione & Credenziali
-            VStack {
+            VStack(spacing: 0) {
                 if let app = selectedApp {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 0) {
                         // Header App
-                        HStack {
+                        HStack(spacing: 14) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.purple.opacity(0.2), Color.blue.opacity(0.2)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 48, height: 48)
+                                Text(String(app.name.prefix(1)).uppercased())
+                                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                                    .foregroundStyle(
+                                        LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                    )
+                            }
+                            
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(app.name)
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                                if !app.website.isEmpty {
-                                    Link(destination: URL(string: app.website.contains("://") ? app.website : "https://\(app.website)") ?? URL(string: "https://google.com")!) {
+                                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                                if !app.website.isEmpty,
+                                   let url = URL(string: app.website.contains("://") ? app.website : "https://\(app.website)") {
+                                    Link(destination: url) {
                                         HStack(spacing: 4) {
+                                            Image(systemName: "globe")
+                                                .font(.caption)
                                             Text(app.website)
                                                 .font(.subheadline)
                                             Image(systemName: "arrow.up.right.square")
                                                 .font(.caption)
                                         }
+                                        .foregroundColor(.blue)
                                     }
                                 }
                             }
+                            
                             Spacer()
                             
-                            Button(action: { showAddCredential = true }) {
-                                Label("Nuova Credenziale", systemImage: "plus")
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing))
-                                    .cornerRadius(8)
+                            Button(action: {
+                                closeCredentialSheet()
+                                showAddCredential = true
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 13, weight: .bold))
+                                    Text("Nuova Credenziale")
+                                        .font(.system(size: 13, weight: .semibold))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 9)
+                                .background(
+                                    LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .cornerRadius(8)
+                                .shadow(color: .purple.opacity(0.25), radius: 6, x: 0, y: 3)
                             }
                             .buttonStyle(.plain)
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 18)
                         
-                        Divider()
+                        Divider().opacity(0.4)
                         
                         // Lista Credenziali
                         if app.credentials.isEmpty {
                             Spacer()
-                            VStack(spacing: 12) {
+                            VStack(spacing: 14) {
                                 Image(systemName: "key.viewfinder")
                                     .font(.system(size: 48))
+                                    .foregroundColor(.secondary.opacity(0.45))
+                                Text("Nessuna credenziale salvata")
+                                    .font(.headline)
                                     .foregroundColor(.secondary)
-                                Text("Nessuna credenziale in questa app")
+                                Text("Aggiungi il primo account o password per \(app.name).")
+                                    .font(.caption)
                                     .foregroundColor(.secondary)
+                                
+                                Button(action: {
+                                    closeCredentialSheet()
+                                    showAddCredential = true
+                                }) {
+                                    Label("Aggiungi Credenziale", systemImage: "plus")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 9)
+                                        .background(
+                                            LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                                        )
+                                        .cornerRadius(8)
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.top, 4)
                             }
                             .frame(maxWidth: .infinity)
                             Spacer()
@@ -339,83 +548,174 @@ public struct MainSplitView: View {
                                         )
                                     }
                                 }
-                                .padding()
+                                .padding(20)
                             }
                         }
                     }
-                    .padding(.top)
                 } else {
                     VStack(spacing: 16) {
-                        Image(systemName: "lock.shield")
-                            .font(.system(size: 64))
-                            .foregroundColor(.secondary.opacity(0.5))
-                        Text("Seleziona un'applicazione per visualizzare i dettagli")
+                        Image(nsImage: NSApp.applicationIconImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 64, height: 64)
+                            .cornerRadius(14)
+                            .opacity(0.6)
+                        Text("Seleziona un'applicazione per visualizzare le credenziali")
                             .foregroundColor(.secondary)
                             .font(.headline)
+                        Text("Tutte le tue password sono cifrate localmente con AES-256-GCM.")
+                            .font(.caption)
+                            .foregroundColor(.secondary.opacity(0.8))
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .frame(minWidth: 400)
+            .frame(minWidth: 420)
             .background(Color(nsColor: .windowBackgroundColor))
         }
-        // Fogli modali (Sheets)
+        .onAppear {
+            autoSelectInitialItems()
+        }
+        .onChange(of: selectedGroupID) { _ in
+            if let group = selectedGroup {
+                selectedAppID = group.applications.first?.id
+            } else {
+                selectedAppID = nil
+            }
+        }
+        // MARK: - Fogli Modali (Sheets)
         
-        // 1. Nuovo Gruppo
+        // 1. Nuovo Gruppo (con Griglia 4x2 senza errori di visualizzazione!)
         .sheet(isPresented: $showAddGroup) {
-            VStack(spacing: 20) {
-                Text("Crea Nuovo Gruppo")
-                    .font(.headline)
+            VStack(alignment: .leading, spacing: 20) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.purple.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: newGroupIcon)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.purple)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Crea Nuovo Gruppo")
+                            .font(.system(size: 16, weight: .bold))
+                        Text("Organizza le tue applicazioni per categoria")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
                 
-                TextField("Nome Gruppo", text: $newGroupName)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Nome del Gruppo")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.secondary)
+                    TextField("Es. Lavoro, Personale, Finanza...", text: $newGroupName)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit {
+                            if !newGroupName.isEmpty {
+                                createGroup()
+                            }
+                        }
+                }
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Seleziona Icona")
-                        .font(.subheadline)
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.secondary)
                     
-                    HStack(spacing: 12) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                         ForEach(groupIcons, id: \.self) { icon in
-                            Image(systemName: icon)
-                                .font(.title3)
-                                .foregroundColor(newGroupIcon == icon ? .purple : .secondary)
-                                .padding(8)
-                                .background(newGroupIcon == icon ? Color.purple.opacity(0.2) : Color.clear)
-                                .cornerRadius(6)
-                                .onTapGesture {
-                                    newGroupIcon = icon
-                                }
+                            Button(action: { newGroupIcon = icon }) {
+                                Image(systemName: icon)
+                                    .font(.system(size: 18))
+                                    .foregroundColor(newGroupIcon == icon ? .purple : .secondary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 42)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(newGroupIcon == icon ? Color.purple.opacity(0.18) : Color.primary.opacity(0.05))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(newGroupIcon == icon ? Color.purple : Color.clear, lineWidth: 1.5)
+                                    )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
+                
+                Divider().opacity(0.4)
                 
                 HStack {
                     Button("Annulla") {
                         showAddGroup = false
                         newGroupName = ""
                     }
+                    .keyboardShortcut(.cancelAction)
+                    
                     Spacer()
-                    Button("Crea") {
-                        createGroup()
+                    
+                    Button(action: createGroup) {
+                        Text("Crea Gruppo")
+                            .fontWeight(.semibold)
                     }
-                    .disabled(newGroupName.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.purple)
+                    .disabled(newGroupName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .keyboardShortcut(.defaultAction)
                 }
             }
-            .padding()
-            .frame(width: 320)
+            .padding(24)
+            .frame(width: 360)
         }
         
         // 2. Nuova Applicazione
         .sheet(isPresented: $showAddApp) {
-            VStack(spacing: 20) {
-                Text("Aggiungi Applicazione")
-                    .font(.headline)
+            VStack(alignment: .leading, spacing: 20) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "app.badge.plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.blue)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Aggiungi Applicazione")
+                            .font(.system(size: 16, weight: .bold))
+                        Text("Inserisci il nome del sito o servizio")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
                 
-                TextField("Nome Applicazione (es. Google, GitHub)", text: $newAppName)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Nome Applicazione")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.secondary)
+                    TextField("Es. Google, GitHub, Intesa Sanpaolo", text: $newAppName)
+                        .textFieldStyle(.roundedBorder)
+                }
                 
-                TextField("Sito Web (Opzionale)", text: $newAppWebsite)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Sito Web (Opzionale)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.secondary)
+                    TextField("Es. https://github.com", text: $newAppWebsite)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit {
+                            if !newAppName.isEmpty {
+                                createApplication()
+                            }
+                        }
+                }
+                
+                Divider().opacity(0.4)
                 
                 HStack {
                     Button("Annulla") {
@@ -423,46 +723,106 @@ public struct MainSplitView: View {
                         newAppName = ""
                         newAppWebsite = ""
                     }
+                    .keyboardShortcut(.cancelAction)
+                    
                     Spacer()
-                    Button("Aggiungi") {
-                        createApplication()
+                    
+                    Button(action: createApplication) {
+                        Text("Aggiungi")
+                            .fontWeight(.semibold)
                     }
-                    .disabled(newAppName.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .disabled(newAppName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .keyboardShortcut(.defaultAction)
                 }
             }
-            .padding()
-            .frame(width: 320)
+            .padding(24)
+            .frame(width: 360)
         }
         
         // 3. Nuova/Modifica Credenziale
         .sheet(isPresented: Binding(
             get: { showAddCredential || editingCredential != nil },
-            set: { if !$0 { showAddCredential = false; editingCredential = nil } }
+            set: { if !$0 { closeCredentialSheet() } }
         )) {
-            VStack(spacing: 16) {
-                Text(editingCredential == nil ? "Aggiungi Credenziale" : "Modifica Credenziale")
-                    .font(.headline)
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.purple.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "key.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.purple)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(editingCredential == nil ? "Nuova Credenziale" : "Modifica Credenziale")
+                            .font(.system(size: 16, weight: .bold))
+                        Text("I dati verranno cifrati con AES-256-GCM")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 4)
                 
-                TextField("Titolo (es. Account Personale)", text: $credentialTitle)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Titolo Account")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+                    TextField("Es. Account Personale, PEC, Admin", text: $credentialTitle)
+                        .textFieldStyle(.roundedBorder)
+                }
                 
-                TextField("Nome Utente / Email", text: $credentialUsername)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Nome Utente o Email")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+                    TextField("Es. nome@dominio.it", text: $credentialUsername)
+                        .textFieldStyle(.roundedBorder)
+                }
                 
-                SecureField("Password", text: $credentialPassword)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Password")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+                    HStack(spacing: 6) {
+                        if showPasswordInSheet {
+                            TextField("Password", text: $credentialPassword)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(.body, design: .monospaced))
+                        } else {
+                            SecureField("Password", text: $credentialPassword)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        
+                        Button(action: { showPasswordInSheet.toggle() }) {
+                            Image(systemName: showPasswordInSheet ? "eye.slash.fill" : "eye.fill")
+                                .foregroundColor(.secondary)
+                                .frame(width: 28, height: 24)
+                        }
+                        .buttonStyle(.plain)
+                        .help(showPasswordInSheet ? "Nascondi password" : "Mostra password")
+                    }
+                }
                 
                 // Generatore di Password Integrato
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Button(action: generatePassword) {
-                            HStack {
+                        Button(action: {
+                            generatePassword()
+                            showPasswordInSheet = true
+                        }) {
+                            HStack(spacing: 5) {
                                 Image(systemName: "dice.fill")
-                                Text("Genera Password")
+                                Text("Genera Password Sicura")
                             }
+                            .font(.caption.weight(.semibold))
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.purple)
+                        .controlSize(.small)
                         
                         Spacer()
                         
@@ -481,8 +841,8 @@ public struct MainSplitView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             HStack {
                                 Text("Lunghezza: \(genLength)")
-                                    .font(.caption)
-                                    .frame(width: 80, alignment: .leading)
+                                    .font(.caption.weight(.medium))
+                                    .frame(width: 90, alignment: .leading)
                                 Slider(value: Binding(
                                     get: { Double(genLength) },
                                     set: { genLength = Int($0) }
@@ -499,58 +859,94 @@ public struct MainSplitView: View {
                             .font(.caption)
                         }
                         .padding(10)
-                        .background(Color.primary.opacity(0.04))
+                        .background(Color.primary.opacity(0.05))
                         .cornerRadius(8)
                     }
                 }
-                .padding(.bottom, 4)
                 
-                TextField("Sito Web URL", text: $credentialUrl)
-                    .textFieldStyle(.roundedBorder)
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Sito Web URL (Opzionale)")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.secondary)
+                        TextField("https://...", text: $credentialUrl)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Segreto 2FA / TOTP (Base32)")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.secondary)
+                        TextField("Es. JBSWY3DPEHPK3PXP", text: $credentialTotp)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                }
                 
-                TextField("Segreto TOTP / 2FA (Base32)", text: $credentialTotp)
-                    .textFieldStyle(.roundedBorder)
-                
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Note")
-                        .font(.caption)
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(.secondary)
                     TextEditor(text: $credentialNotes)
-                        .frame(height: 80)
-                        .border(Color.gray.opacity(0.2))
+                        .font(.body)
+                        .frame(height: 64)
+                        .padding(4)
+                        .background(Color(nsColor: .textBackgroundColor))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                        )
                 }
+                
+                Divider().opacity(0.4)
                 
                 HStack {
                     Button("Annulla") {
                         closeCredentialSheet()
                     }
+                    .keyboardShortcut(.cancelAction)
+                    
                     Spacer()
-                    Button("Salva") {
-                        saveCredential()
+                    
+                    Button(action: saveCredential) {
+                        Text("Salva Credenziale")
+                            .fontWeight(.semibold)
                     }
-                    .disabled(credentialTitle.isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.purple)
+                    .disabled(credentialTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .keyboardShortcut(.defaultAction)
                 }
             }
-            .padding()
-            .frame(width: 380)
+            .padding(24)
+            .frame(width: 420)
         }
+        
+        // 4. Informazioni & Aggiornamenti
         .sheet(isPresented: $showAbout) {
             VStack(spacing: 16) {
-                Image(systemName: "lock.shield.fill")
+                Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 54, height: 54)
-                    .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                Text("LocKey")
-                    .font(.title2.bold())
-                Text("Versione 1.0.1 (Build Nativa macOS)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .frame(width: 68, height: 68)
+                    .cornerRadius(16)
+                    .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
+                
+                VStack(spacing: 4) {
+                    Text("LocKey")
+                        .font(.title2.bold())
+                    Text("Versione 1.0.1 (Build Nativa macOS)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
                 Text("Sviluppato e distribuito gratuitamente da\nBiragoDev")
                     .multilineTextAlignment(.center)
                     .font(.subheadline)
+                
                 Link("www.biragodev.it", destination: URL(string: "https://www.biragodev.it")!)
                     .font(.subheadline.bold())
+                
                 Text("Tutti i dati sono protetti in locale tramite Secure Enclave e crittografia AES-256-GCM. Nessun dato lascia mai questo Mac.")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -598,11 +994,18 @@ public struct MainSplitView: View {
                     .keyboardShortcut(.defaultAction)
             }
             .padding(24)
-            .frame(width: 340)
+            .frame(width: 360)
         }
     }
     
     // MARK: - Funzioni di business logic della UI
+    
+    private func autoSelectInitialItems() {
+        if selectedGroupID == nil, let firstGroup = vaultStore.groups.first {
+            selectedGroupID = firstGroup.id
+            selectedAppID = firstGroup.applications.first?.id
+        }
+    }
     
     private func checkForUpdates() {
         isCheckingUpdate = true
@@ -647,24 +1050,35 @@ public struct MainSplitView: View {
     }
     
     private func createGroup() {
-        guard !newGroupName.isEmpty else { return }
-        let group = Group(name: newGroupName, icon: newGroupIcon)
+        let trimmed = newGroupName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        let group = Group(name: trimmed, icon: newGroupIcon)
         vaultStore.groups.append(group)
         vaultStore.save()
         
         showAddGroup = false
-        selectedGroupID = group.id // seleziona automaticamente il nuovo gruppo
+        selectedGroupID = group.id
         newGroupName = ""
     }
     
+    private func deleteGroup(_ group: Group) {
+        vaultStore.groups.removeAll { $0.id == group.id }
+        vaultStore.save()
+        if selectedGroupID == group.id {
+            selectedGroupID = vaultStore.groups.first?.id
+            selectedAppID = selectedGroup?.applications.first?.id
+        }
+    }
+    
     private func createApplication() {
-        guard let groupIndex = vaultStore.groups.firstIndex(where: { $0.id == selectedGroupID }), !newAppName.isEmpty else { return }
-        let app = Application(name: newAppName, website: newAppWebsite)
+        let trimmed = newAppName.trimmingCharacters(in: .whitespaces)
+        guard let groupIndex = vaultStore.groups.firstIndex(where: { $0.id == selectedGroupID }), !trimmed.isEmpty else { return }
+        let app = Application(name: trimmed, website: newAppWebsite.trimmingCharacters(in: .whitespaces))
         vaultStore.groups[groupIndex].applications.append(app)
         vaultStore.save()
         
         showAddApp = false
-        selectedAppID = app.id // seleziona automaticamente la nuova app
+        selectedAppID = app.id
         newAppName = ""
         newAppWebsite = ""
     }
@@ -673,7 +1087,16 @@ public struct MainSplitView: View {
         guard let groupIndex = vaultStore.groups.firstIndex(where: { $0.id == selectedGroupID }) else { return }
         vaultStore.groups[groupIndex].applications.remove(atOffsets: offsets)
         vaultStore.save()
-        selectedAppID = nil
+        selectedAppID = vaultStore.groups[groupIndex].applications.first?.id
+    }
+    
+    private func deleteSingleApplication(_ app: Application) {
+        guard let groupIndex = vaultStore.groups.firstIndex(where: { $0.id == selectedGroupID }) else { return }
+        vaultStore.groups[groupIndex].applications.removeAll { $0.id == app.id }
+        vaultStore.save()
+        if selectedAppID == app.id {
+            selectedAppID = vaultStore.groups[groupIndex].applications.first?.id
+        }
     }
     
     private func startEditingCredential(_ cred: Credential) {
@@ -684,6 +1107,7 @@ public struct MainSplitView: View {
         credentialNotes = dec.notes
         credentialUrl = dec.url
         credentialTotp = dec.totpSecret
+        showPasswordInSheet = false
         editingCredential = cred
     }
     
@@ -693,6 +1117,7 @@ public struct MainSplitView: View {
         credentialTitle = ""
         credentialUsername = ""
         credentialPassword = ""
+        showPasswordInSheet = false
         credentialNotes = ""
         credentialUrl = ""
         credentialTotp = ""
@@ -710,18 +1135,19 @@ public struct MainSplitView: View {
     }
     
     private func saveCredential() {
+        let trimmedTitle = credentialTitle.trimmingCharacters(in: .whitespaces)
         guard let groupIndex = vaultStore.groups.firstIndex(where: { $0.id == selectedGroupID }),
               let appIndex = vaultStore.groups[groupIndex].applications.firstIndex(where: { $0.id == selectedAppID }),
-              !credentialTitle.isEmpty else { return }
+              !trimmedTitle.isEmpty else { return }
         
         let tempDecrypted = DecryptedCredential(
             id: editingCredential?.id ?? UUID(),
-            title: credentialTitle,
-            username: credentialUsername,
+            title: trimmedTitle,
+            username: credentialUsername.trimmingCharacters(in: .whitespaces),
             password: credentialPassword,
             notes: credentialNotes,
-            url: credentialUrl,
-            totpSecret: credentialTotp,
+            url: credentialUrl.trimmingCharacters(in: .whitespaces),
+            totpSecret: credentialTotp.trimmingCharacters(in: .whitespaces),
             createdAt: editingCredential?.createdAt ?? Date(),
             updatedAt: Date()
         )
@@ -730,10 +1156,8 @@ public struct MainSplitView: View {
             let encrypted = try vaultStore.encryptCredential(tempDecrypted)
             
             if let editIndex = vaultStore.groups[groupIndex].applications[appIndex].credentials.firstIndex(where: { $0.id == editingCredential?.id }) {
-                // Modifica esistente
                 vaultStore.groups[groupIndex].applications[appIndex].credentials[editIndex] = encrypted
             } else {
-                // Nuova credenziale
                 vaultStore.groups[groupIndex].applications[appIndex].credentials.append(encrypted)
             }
             
@@ -790,6 +1214,7 @@ public struct MainSplitView: View {
                 promptPassword(title: "Password di Backup", message: "Inserisci la password utilizzata per cifrare questo backup:") { pwd in
                     do {
                         try vaultStore.importBackup(from: url, password: pwd)
+                        autoSelectInitialItems()
                     } catch {
                         alertError(message: "Errore durante l'importazione: \(error.localizedDescription)")
                     }

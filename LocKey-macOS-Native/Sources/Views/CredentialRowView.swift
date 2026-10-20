@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 /// Vista riga per visualizzare e gestire in sicurezza una credenziale.
 public struct CredentialRowView: View {
@@ -35,25 +36,42 @@ public struct CredentialRowView: View {
     
     public var body: some View {
         HStack(alignment: .center, spacing: 16) {
-            // Icona Lucchetto
-            Image(systemName: "key.fill")
-                .font(.system(size: 16))
-                .foregroundColor(.purple)
-                .frame(width: 32, height: 32)
-                .background(Color.purple.opacity(0.1))
-                .cornerRadius(8)
+            // Icona Chiave
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.purple.opacity(0.18), Color.blue.opacity(0.18)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: "key.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+            }
             
             // Dettagli Credenziale
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(decrypted.title)
-                    .font(.headline)
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.primary)
                 
                 HStack(spacing: 8) {
                     if !decrypted.username.isEmpty {
-                        Text(decrypted.username)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text(decrypted.username)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                        }
                     } else {
                         Text("Nessun nome utente")
                             .font(.subheadline)
@@ -63,12 +81,20 @@ public struct CredentialRowView: View {
                     
                     if !decrypted.url.isEmpty {
                         Text("•")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.secondary.opacity(0.6))
                         Text(decrypted.url)
                             .font(.subheadline)
                             .foregroundColor(.blue)
                             .lineLimit(1)
                     }
+                }
+                
+                if !decrypted.notes.isEmpty {
+                    Text(decrypted.notes)
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.85))
+                        .lineLimit(2)
+                        .padding(.top, 1)
                 }
                 
                 if !decrypted.totpSecret.isEmpty {
@@ -86,17 +112,24 @@ public struct CredentialRowView: View {
                             .foregroundColor(.purple)
                         Text("(\(timeRemaining)s)")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(timeRemaining <= 5 ? .red : .secondary)
                         
                         Button(action: copyTOTP) {
-                            Image(systemName: justCopiedTOTP ? "checkmark" : "doc.on.doc")
-                                .font(.system(size: 10))
-                                .foregroundColor(justCopiedTOTP ? .green : .secondary)
+                            HStack(spacing: 3) {
+                                Image(systemName: justCopiedTOTP ? "checkmark" : "doc.on.doc")
+                                Text(justCopiedTOTP ? "Copiato" : "Copia")
+                            }
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(justCopiedTOTP ? .green : .purple)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(4)
                         }
                         .buttonStyle(.plain)
-                        .help(justCopiedTOTP ? "Copiato!" : "Copia codice OTP")
+                        .help("Copia codice 2FA")
                     }
-                    .padding(.top, 2)
+                    .padding(.top, 3)
                     .onReceive(timer) { _ in
                         updateTOTP()
                     }
@@ -109,7 +142,7 @@ public struct CredentialRowView: View {
             Spacer()
             
             // Pulsanti e Azioni Rapide
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 if !decrypted.password.isEmpty {
                     // Visualizzazione Password in chiaro/protetta
                     SwiftUI.Group {
@@ -119,79 +152,90 @@ public struct CredentialRowView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Color.primary.opacity(0.08))
-                                .cornerRadius(4)
+                                .cornerRadius(6)
+                                .textSelection(.enabled)
                         } else {
                             Text("••••••••")
                                 .font(.system(.subheadline, design: .monospaced))
                                 .foregroundColor(.secondary)
+                                .padding(.horizontal, 4)
                         }
                     }
                     
                     // Tasto Mostra/Nascondi
                     Button(action: { isPasswordVisible.toggle() }) {
-                        Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                            .frame(width: 28, height: 28)
-                            .contentShape(Rectangle())
+                        Image(systemName: isPasswordVisible ? "eye.slash.fill" : "eye.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(isPasswordVisible ? .purple : .secondary)
+                            .frame(width: 30, height: 30)
+                            .background(Color.primary.opacity(0.05))
+                            .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
                     .help(isPasswordVisible ? "Nascondi password" : "Mostra password")
                     
                     // Tasto Copia Password
                     Button(action: copyPassword) {
-                        Image(systemName: justCopiedPassword ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
-                            .foregroundColor(justCopiedPassword ? .green : .secondary)
-                            .frame(width: 28, height: 28)
-                            .contentShape(Rectangle())
+                        HStack(spacing: 4) {
+                            Image(systemName: justCopiedPassword ? "checkmark" : "doc.on.doc")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(justCopiedPassword ? "Copiata" : "Password")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundColor(justCopiedPassword ? .green : .primary)
+                        .padding(.horizontal, 8)
+                        .frame(height: 30)
+                        .background(justCopiedPassword ? Color.green.opacity(0.15) : Color.primary.opacity(0.06))
+                        .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
-                    .help(justCopiedPassword ? "Copiata!" : "Copia password")
+                    .help("Copia password negli appunti (auto-pulizia 30s)")
                 }
                 
                 if !decrypted.username.isEmpty {
                     // Tasto Copia Username
                     Button(action: copyUsername) {
-                        Image(systemName: justCopiedUsername ? "checkmark" : "person.badge.key")
+                        Image(systemName: justCopiedUsername ? "checkmark" : "person.badge.key.fill")
                             .font(.system(size: 13))
                             .foregroundColor(justCopiedUsername ? .green : .secondary)
-                            .frame(width: 28, height: 28)
-                            .contentShape(Rectangle())
+                            .frame(width: 30, height: 30)
+                            .background(justCopiedUsername ? Color.green.opacity(0.15) : Color.primary.opacity(0.05))
+                            .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
-                    .help(justCopiedUsername ? "Copiato!" : "Copia nome utente")
+                    .help(justCopiedUsername ? "Nome utente copiato!" : "Copia nome utente")
                 }
                 
                 // Menu contestuale per Modifica ed Eliminazione
                 Menu {
                     Button(action: onEdit) {
-                        Label("Modifica", systemImage: "pencil")
+                        Label("Modifica credenziale", systemImage: "pencil")
                     }
+                    Divider()
                     Button(role: .destructive, action: onDelete) {
                         Label("Elimina credenziale", systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 14))
+                        .font(.system(size: 15))
                         .foregroundColor(.secondary)
-                        .frame(width: 28, height: 28)
+                        .frame(width: 30, height: 30)
                         .contentShape(Rectangle())
                 }
                 .menuStyle(.borderlessButton)
-                .frame(width: 28)
+                .frame(width: 30)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(
-            Color(nsColor: .controlBackgroundColor)
-                .opacity(0.5)
-                .cornerRadius(12)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(nsColor: .controlBackgroundColor))
+                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
         )
     }
     

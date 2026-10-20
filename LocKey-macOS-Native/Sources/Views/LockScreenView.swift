@@ -30,30 +30,26 @@ public struct LockScreenView: View {
             .ignoresSafeArea()
             
             // Card centrale Glassmorphic
-            VStack(spacing: 25) {
-                // Icona di sicurezza
-                Image(systemName: isSettingUp ? "lock.shield.fill" : "lock.fill")
+            VStack(spacing: 20) {
+                // Icona ufficiale del programma LocKey
+                Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 64, height: 64)
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.purple, .blue],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: .purple.opacity(0.3), radius: 10, x: 0, y: 5)
+                    .frame(width: 76, height: 76)
+                    .cornerRadius(18)
+                    .shadow(color: .purple.opacity(0.35), radius: 12, x: 0, y: 6)
                 
-                Text("LocKey")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                
-                Text("by BiragoDev • 100% Offline")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing))
+                VStack(spacing: 4) {
+                    Text("LocKey")
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                    
+                    Text("by BiragoDev • 100% Offline")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing))
+                }
                 
                 Text(isSettingUp ? "Configura la tua Master Password" : "Sblocca il tuo Vault protetto")
-                    .font(.headline)
+                    .font(.subheadline.weight(.medium))
                     .foregroundColor(.secondary)
                 
                 if vaultStore.hasVaultFile && !isSettingUp {

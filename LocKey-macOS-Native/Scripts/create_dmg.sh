@@ -28,7 +28,8 @@ if [ ! -d "${BUILD_DIR}/${APP_NAME}.app" ]; then
     exit 1
 fi
 
-# 2. Pulisce eventuali rimasugli temporanei
+# 2. Smonta eventuali immagini precedenti e pulisce i rimasugli temporanei
+hdiutil detach "/Volumes/${VOLUME_NAME}" -force 2>/dev/null || true
 rm -rf "${STAGING_DIR}" "${TEMP_DMG}" "${FINAL_DMG}"
 mkdir -p "${STAGING_DIR}"
 
