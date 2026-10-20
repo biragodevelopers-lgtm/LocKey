@@ -91,28 +91,53 @@ else
 fi
 
 # 3. Compila l'applicazione tramite il compilatore Swift (swiftc)
-echo "➡️  [2/4] Compilazione dei file sorgenti Swift..."
+echo "➡️  [2/4] Compilazione dei file sorgenti Swift (Universal Binary: arm64 + x86_64)..."
 if [ -d "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk" ]; then
     SDK_PATH="/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk"
 else
     SDK_PATH=$(xcrun --show-sdk-path --sdk macosx)
 fi
-HOST_ARCH=$(uname -m)
 
-swiftc -sdk "${SDK_PATH}" \
-       -target "${HOST_ARCH}-apple-macosx13.0" \
-       -parse-as-library \
-       Sources/Models/Models.swift \
-       Sources/Cryptography/CryptoManager.swift \
-       Sources/Cryptography/BiometricAuthenticator.swift \
-       Sources/Storage/VaultStore.swift \
-       Sources/Storage/ClipboardManager.swift \
-       Sources/Storage/HotKeyManager.swift \
-       Sources/Views/MainSplitView.swift \
-       Sources/Views/CredentialRowView.swift \
-       Sources/Views/LockScreenView.swift \
-       Sources/App/LocKeyApp.swift \
-       -o "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+SOURCES=(
+    Sources/Models/Models.swift
+    Sources/Cryptography/CryptoManager.swift
+    Sources/Cryptography/BiometricAuthenticator.swift
+    Sources/Storage/VaultStore.swift
+    Sources/Storage/ClipboardManager.swift
+    Sources/Storage/HotKeyManager.swift
+    Sources/Views/MainSplitView.swift
+    Sources/Views/CredentialRowView.swift
+    Sources/Views/LockScreenView.swift
+    Sources/App/LocKeyApp.swift
+)
+
+ARM64_BIN="${BUILD_DIR}/${APP_NAME}_arm64"
+X86_BIN="${BUILD_DIR}/${APP_NAME}_x86_64"
+FINAL_BIN="${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+
+# Compilazione per Apple Silicon (arm64)
+echo "   Compilazione target arm64 (Apple Silicon)..."
+swiftc -sdk "${SDK_PATH}" -target "arm64-apple-macosx13.0" -parse-as-library "${SOURCES[@]}" -o "${ARM64_BIN}" || true
+
+# Compilazione per Intel (x86_64)
+echo "   Compilazione target x86_64 (Intel)..."
+swiftc -sdk "${SDK_PATH}" -target "x86_64-apple-macosx13.0" -parse-as-library "${SOURCES[@]}" -o "${X86_BIN}" || true
+
+# Unione in Universal Binary con lipo
+if [ -f "${ARM64_BIN}" ] && [ -f "${X86_BIN}" ]; then
+    echo "   Creazione Universal Binary con lipo..."
+    lipo -create -output "${FINAL_BIN}" "${ARM64_BIN}" "${X86_BIN}"
+    rm -f "${ARM64_BIN}" "${X86_BIN}"
+elif [ -f "${ARM64_BIN}" ]; then
+    echo "   Utilizzo binario arm64..."
+    mv "${ARM64_BIN}" "${FINAL_BIN}"
+elif [ -f "${X86_BIN}" ]; then
+    echo "   Utilizzo binario x86_64..."
+    mv "${X86_BIN}" "${FINAL_BIN}"
+else
+    echo "❌ Errore durante la compilazione dei binari."
+    exit 1
+fi
 
 # 4. Applica la firma digitale ad-hoc
 echo "➡️  [3/4] Esecuzione codesign (firma ad-hoc)..."

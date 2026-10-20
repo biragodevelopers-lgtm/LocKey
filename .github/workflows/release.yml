@@ -1,0 +1,127 @@
+name: Build & Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag di rilascio (es. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS DMG
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and Package LocKey.dmg
+        run: |
+          cd LocKey-macOS-Native
+          chmod +x Scripts/*.sh
+          ./Scripts/build_and_package.sh
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: LocKey-macOS-Native/LocKey.dmg
+          if-no-files-found: error
+
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies & Build UI
+        run: |
+          npm install
+          npm run build
+
+      - name: Install Electron Dependencies & Build Windows Installer
+        working-directory: ./LocKey-Windows-Local
+        run: |
+          npm install
+          npm run build:win
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: LocKey-Windows-Local/dist-electron/*.exe
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine Release Tag
+        id: tag_step
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          fi
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-dmg
+          path: ./artifacts/macos
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+          path: ./artifacts/windows
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p ./release-assets
+          cp ./artifacts/macos/LocKey.dmg ./release-assets/LocKey.dmg
+          cp ./artifacts/windows/*.exe ./release-assets/
+          echo "Assets to publish:"
+          ls -la ./release-assets/
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "LocKey ${{ env.RELEASE_TAG }} - Versione Ufficiale (macOS & Windows)"
+          draft: false
+          prerelease: false
+          files: ./release-assets/*
+          body: |
+            ## 🔒 LocKey - Zero-Knowledge Local Password Manager
+            Sviluppato e distribuito gratuitamente da **[BiragoDev](https://www.biragodev.it)**.
+
+            ### 📦 Download Applicazioni:
+            - 🍏 **macOS (Universal Apple Silicon & Intel)**: Scarica `LocKey.dmg`
+            - 💻 **Windows 10 / 11 (64-bit)**: Scarica `LocKey Setup ... .exe`
+
+            ### 🛡️ Caratteristiche Principali:
+            - **100% Offline**: Nessuna connessione alla rete, nessuna richiesta verso server esterni.
+            - **Sicurezza Hardware**: Supporto Touch ID / Face ID e Apple Keychain / Secure Enclave su Mac.
+            - **Crittografia**: AES-256-GCM con derivazione PBKDF2 (100.000 iterazioni SHA-256).
+            - **Zero Pubblicità & Zero Tracciamento**: Software gratuito e trasparente.
+            - **Termini & Privacy**: Consulta il file `TERMINI_E_PRIVACY.md` incluso nel repository.
