@@ -18,8 +18,9 @@ Build/
 tmp_dmg_staging/
 tmp_stage_*
 
-# Binary Installers (questi vanno caricati nella sezione Releases di GitHub, non nel repo git)
+# Binary Installers
 *.dmg
+!LocKey-macOS-Native/LocKey.dmg
 *.exe
 *.blockmap
 *.7z

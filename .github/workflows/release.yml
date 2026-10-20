@@ -16,27 +16,10 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
-  build-macos:
-    name: Build macOS DMG
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build and Package LocKey.dmg
-        run: |
-          cd LocKey-macOS-Native
-          chmod +x Scripts/*.sh
-          ./Scripts/build_and_package.sh
-
-      - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-dmg
-          path: LocKey-macOS-Native/LocKey.dmg
-          if-no-files-found: error
-
   build-windows:
     name: Build Windows EXE
     runs-on: windows-latest
@@ -70,7 +53,7 @@ jobs:
 
   publish-release:
     name: Publish GitHub Release
-    needs: [build-macos, build-windows]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -88,12 +71,6 @@ jobs:
             echo "RELEASE_TAG=v${PKG_VER}" >> $GITHUB_ENV
           fi
 
-      - name: Download macOS Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-dmg
-          path: ./artifacts/macos
-
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
@@ -103,7 +80,7 @@ jobs:
       - name: Prepare Release Assets
         run: |
           mkdir -p ./release-assets
-          cp ./artifacts/macos/LocKey.dmg ./release-assets/LocKey.dmg
+          cp ./LocKey-macOS-Native/LocKey.dmg ./release-assets/LocKey.dmg
           cp ./artifacts/windows/*.exe ./release-assets/
           echo "Assets to publish:"
           ls -la ./release-assets/
