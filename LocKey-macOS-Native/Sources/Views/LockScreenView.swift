@@ -9,6 +9,7 @@ public struct LockScreenView: View {
     @State private var isSettingUp = false
     @State private var shakeOffset: CGFloat = 0
     @State private var showResetConfirmation = false
+    @State private var hasAttemptedInitialBiometrics = false
     
     public init(vaultStore: VaultStore) {
         self.vaultStore = vaultStore
@@ -82,20 +83,25 @@ public struct LockScreenView: View {
                                     .cornerRadius(8)
                             }
                             .buttonStyle(.plain)
-                            .frame(width: 134)
+                            .frame(width: vaultStore.isTouchIDAvailableForUnlock ? 180 : 280)
                             
                             if vaultStore.isTouchIDAvailableForUnlock {
                                 Button(action: unlockWithTouchID) {
-                                    Image(systemName: "touchid")
-                                        .font(.title2)
-                                        .foregroundColor(.white)
-                                        .frame(width: 44, height: 38)
-                                        .background(
-                                            LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
-                                        )
-                                        .cornerRadius(8)
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "touchid")
+                                            .font(.title3)
+                                        Text("Touch ID")
+                                            .font(.system(size: 11, weight: .semibold))
+                                    }
+                                    .foregroundColor(.white)
+                                    .frame(width: 88, height: 38)
+                                    .background(
+                                        LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .cornerRadius(8)
                                 }
                                 .buttonStyle(.plain)
+                                .help("Sblocca tramite Touch ID")
                             }
                         }
                         .frame(width: 280)
@@ -194,8 +200,11 @@ public struct LockScreenView: View {
         }
         .frame(minWidth: 500, minHeight: 450)
         .onAppear {
-            // All'avvio, se Touch ID è disponibile, lo richiediamo immediatamente
-            if vaultStore.isTouchIDAvailableForUnlock {
+            password = ""
+            confirmPassword = ""
+            // All'avvio iniziale dell'app (se non è stato bloccato manualmente), tentiamo Touch ID una volta
+            if vaultStore.isTouchIDAvailableForUnlock && !vaultStore.isManualLock && !hasAttemptedInitialBiometrics {
+                hasAttemptedInitialBiometrics = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     unlockWithTouchID()
                 }
@@ -219,13 +228,19 @@ public struct LockScreenView: View {
     private func unlockWithPassword() {
         guard !password.isEmpty else { return }
         let success = vaultStore.unlockWithPassword(password: password)
-        if !success {
+        if success {
+            password = ""
+        } else {
             shakeField()
         }
     }
     
     private func unlockWithTouchID() {
-        let _ = vaultStore.unlockWithTouchID()
+        vaultStore.unlockWithTouchID { success in
+            if success {
+                password = ""
+            }
+        }
     }
     
     private func setupVault() {

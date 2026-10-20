@@ -78,9 +78,9 @@ public struct MainSplitView: View {
     public var body: some View {
         NavigationSplitView {
             // COLONNA 1: Sidebar (Gruppi)
-            VStack {
+            VStack(spacing: 0) {
                 List(selection: $selectedGroupID) {
-                    Section("Gruppi") {
+                    Section {
                         ForEach(vaultStore.groups) { group in
                             NavigationLink(value: group.id) {
                                 HStack {
@@ -94,11 +94,20 @@ public struct MainSplitView: View {
                                 }
                             }
                         }
+                    } header: {
+                        HStack {
+                            Text("Gruppi")
+                            Spacer()
+                            Button(action: { vaultStore.lock() }) {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Blocca Vault (Cmd + L)")
+                        }
                     }
                 }
                 .listStyle(.sidebar)
-                
-                Spacer()
                 
                 // Tasto aggiungi gruppo
                 Button(action: { showAddGroup = true }) {
@@ -108,16 +117,70 @@ public struct MainSplitView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color.purple.opacity(0.1))
+                    .background(Color.purple.opacity(0.12))
                     .cornerRadius(8)
-                    .padding(.horizontal)
-                    .padding(.top, 4)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
                 }
                 .buttonStyle(.plain)
                 
-                // Branding BiragoDev Footer
+                // Pulsante Blocca Vault principale e sempre visibile
+                Button(action: { vaultStore.lock() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 13, weight: .bold))
+                        Text("Blocca Vault")
+                            .font(.system(size: 13, weight: .semibold))
+                        Spacer()
+                        Text("⌘L")
+                            .font(.caption2.bold())
+                            .opacity(0.8)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        LinearGradient(colors: [Color.red.opacity(0.9), Color.pink.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .cornerRadius(8)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut("l", modifiers: .command)
+                .help("Blocca immediatamente il Vault (Cmd + L)")
+                
+                // Branding BiragoDev & Verifica Aggiornamenti Footer
                 VStack(spacing: 4) {
                     Divider().opacity(0.3)
+                        .padding(.vertical, 4)
+                    
+                    Button(action: { showAbout = true; checkForUpdates() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .foregroundColor(.blue)
+                            Text("Verifica aggiornamenti")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Text("v1.0.1")
+                                .font(.system(size: 10, weight: .bold))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.15))
+                                .cornerRadius(4)
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(Color.primary.opacity(0.04))
+                        .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Verifica disponibilità nuove versioni di LocKey")
+                    .padding(.horizontal, 12)
+                    
                     HStack {
                         Image(systemName: "checkmark.shield.fill")
                             .foregroundColor(.green)
@@ -131,32 +194,25 @@ public struct MainSplitView: View {
                             .foregroundColor(.blue)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.top, 6)
-                    
-                    HStack {
-                        Button(action: { showAbout = true; checkForUpdates() }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                Text("Verifica aggiornamenti")
-                            }
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        Spacer()
-                    }
-                    .padding(.horizontal, 14)
+                    .padding(.top, 4)
                     .padding(.bottom, 6)
                 }
             }
             .navigationTitle("LocKey")
             .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button(action: { vaultStore.lock() }) {
+                        Label("Blocca", systemImage: "lock.fill")
+                    }
+                    .help("Blocca immediatamente il Vault (Cmd + L)")
+                    .keyboardShortcut("l", modifiers: .command)
+                }
                 ToolbarItem(placement: .primaryAction) {
                     HStack(spacing: 8) {
                         Button(action: { showAbout = true }) {
                             Image(systemName: "info.circle")
                         }
-                        .help("Informazioni su LocKey & BiragoDev")
+                        .help("Informazioni su LocKey & Aggiornamenti")
                         
                         Menu {
                             Button(action: exportBackupFlow) {
@@ -165,16 +221,15 @@ public struct MainSplitView: View {
                             Button(action: importBackupFlow) {
                                 Label("Importa Backup (.lockey)", systemImage: "square.and.arrow.down")
                             }
+                            Divider()
+                            Button(action: { showAbout = true; checkForUpdates() }) {
+                                Label("Cerca Aggiornamenti...", systemImage: "arrow.triangle.2.circlepath")
+                            }
                         } label: {
                             Image(systemName: "ellipsis.circle")
                         }
                         .menuStyle(.borderlessButton)
                         .help("Opzioni del Vault (Backup)")
-                        
-                        Button(action: { vaultStore.lock() }) {
-                            Label("Blocca", systemImage: "lock.fill")
-                        }
-                        .help("Blocca immediatamente il vault")
                     }
                 }
             }
@@ -488,7 +543,7 @@ public struct MainSplitView: View {
                     .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
                 Text("LocKey")
                     .font(.title2.bold())
-                Text("Versione 1.0.0 (Build Nativa macOS)")
+                Text("Versione 1.0.1 (Build Nativa macOS)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Text("Sviluppato e distribuito gratuitamente da\nBiragoDev")
@@ -577,7 +632,7 @@ public struct MainSplitView: View {
                 }
                 
                 let latestTag = (json["tag_name"] as? String) ?? ""
-                let currentVersion = "v1.0.0"
+                let currentVersion = "v1.0.1"
                 
                 if !latestTag.isEmpty && latestTag != currentVersion {
                     self.updateCheckResult = "Nuova versione disponibile: \(latestTag)!"

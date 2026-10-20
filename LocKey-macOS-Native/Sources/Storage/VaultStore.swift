@@ -1,12 +1,14 @@
 import Foundation
 import CryptoKit
 import Combine
+import LocalAuthentication
 
 /// Gestisce lo stato e la persistenza dei dati cifrati del Vault.
 /// Implementa sia lo sblocco biometrico che quello tramite Master Password.
 public final class VaultStore: ObservableObject {
     
     @Published public var isUnlocked: Bool = false
+    @Published public var isManualLock: Bool = false
     @Published public var groups: [Group] = []
     @Published public var hasVaultFile: Bool = false
     @Published public var errorMessage: String? = nil
@@ -113,6 +115,7 @@ public final class VaultStore: ObservableObject {
             self.vaultKey = key
             self.groups = loadedGroups
             self.isUnlocked = true
+            self.isManualLock = false
             self.errorMessage = nil
             return true
             
@@ -122,33 +125,48 @@ public final class VaultStore: ObservableObject {
         }
     }
     
-    /// Sblocca il Vault leggendo la chiave dal Keychain protetto dal Secure Enclave.
-    /// Questo metodo attiverà la richiesta Touch ID automatica del sistema operativo.
-    public func unlockWithTouchID() -> Bool {
-        do {
-            let database = try loadDatabaseFromDisk()
-            
-            // 1. Recupera la Vault Key dal Keychain (mostra Touch ID)
-            let key = try CryptoManager.loadVaultKeyFromKeychain()
-            
-            // 2. Decifra i dati del database con la Vault Key
-            let decryptedGroupsJSON = try CryptoManager.decrypt(database.encryptedGroups, using: key)
-            guard let groupsData = decryptedGroupsJSON.data(using: .utf8) else {
-                throw CryptoError.invalidUTF8
+    /// Sblocca il Vault richiedendo esplicitamente l'autenticazione biometrica (Touch ID).
+    public func unlockWithTouchID(completion: ((Bool) -> Void)? = nil) {
+        guard isTouchIDAvailableForUnlock else {
+            self.errorMessage = "Touch ID non disponibile su questo dispositivo."
+            completion?(false)
+            return
+        }
+        
+        BiometricAuthenticator.authenticateUser(reason: "Sblocca il tuo Vault protetto LocKey") { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                do {
+                    let database = try self.loadDatabaseFromDisk()
+                    let key = try CryptoManager.loadVaultKeyFromKeychain()
+                    let decryptedGroupsJSON = try CryptoManager.decrypt(database.encryptedGroups, using: key)
+                    guard let groupsData = decryptedGroupsJSON.data(using: .utf8) else {
+                        throw CryptoError.invalidUTF8
+                    }
+                    
+                    let loadedGroups = try JSONDecoder().decode([Group].self, from: groupsData)
+                    
+                    self.vaultKey = key
+                    self.groups = loadedGroups
+                    self.isUnlocked = true
+                    self.isManualLock = false
+                    self.errorMessage = nil
+                    completion?(true)
+                    
+                } catch {
+                    self.errorMessage = "Errore durante la decifratura del database: \(error.localizedDescription)"
+                    completion?(false)
+                }
+            case .failure(let error):
+                if let laError = error as? LAError, laError.code == .userCancel || laError.code == .appCancel || laError.code == .systemCancel {
+                    // L'utente ha annullato la richiesta biometrica, non mostriamo errori allarmanti
+                    self.errorMessage = nil
+                } else {
+                    self.errorMessage = "Autenticazione biometrica non riuscita: \(error.localizedDescription)"
+                }
+                completion?(false)
             }
-            
-            let loadedGroups = try JSONDecoder().decode([Group].self, from: groupsData)
-            
-            // 3. Aggiorna lo stato in memoria
-            self.vaultKey = key
-            self.groups = loadedGroups
-            self.isUnlocked = true
-            self.errorMessage = nil
-            return true
-            
-        } catch {
-            self.errorMessage = "Impossibile sbloccare con Touch ID: \(error.localizedDescription)"
-            return false
         }
     }
     
@@ -159,6 +177,7 @@ public final class VaultStore: ObservableObject {
         self.vaultKey = nil
         self.groups = []
         self.isUnlocked = false
+        self.isManualLock = true
         self.errorMessage = nil
     }
     

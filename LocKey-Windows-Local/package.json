@@ -1,6 +1,6 @@
 {
   "name": "lockey-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LocKey - Local Offline Password Manager by BiragoDev (www.biragodev.it)",
   "main": "main.js",
   "scripts": {

@@ -41,6 +41,14 @@ struct LocKeyApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
+        .commands {
+            CommandMenu("Vault") {
+                Button("Blocca Vault") {
+                    vaultStore.lock()
+                }
+                .keyboardShortcut("l", modifiers: .command)
+            }
+        }
         
         MenuBarExtra("LocKey", systemImage: "lock.shield") {
             MenuBarView(vaultStore: vaultStore)
