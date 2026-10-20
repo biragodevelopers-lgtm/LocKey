@@ -9,7 +9,9 @@ APP_NAME="LocKey"
 BUILD_DIR="./Build"
 DMG_NAME="LocKey.dmg"
 VOLUME_NAME="LocKey Installer"
-STAGING_DIR="./tmp_dmg_staging"
+STAGING_DIR="/tmp/tmp_dmg_staging_$$"
+TEMP_DMG="/tmp/tmp_stage_$$.dmg"
+FINAL_DMG="/tmp/${DMG_NAME}"
 
 echo "=================================================="
 echo "      Generazione Pacchetto LocKey .DMG           "
@@ -26,8 +28,8 @@ if [ ! -d "${BUILD_DIR}/${APP_NAME}.app" ]; then
     exit 1
 fi
 
-# 2. Pulisce eventuali rimasugli temporanei o vecchi DMG
-rm -rf "${STAGING_DIR}" "${DMG_NAME}"
+# 2. Pulisce eventuali rimasugli temporanei
+rm -rf "${STAGING_DIR}" "${TEMP_DMG}" "${FINAL_DMG}"
 mkdir -p "${STAGING_DIR}"
 
 echo "➡️  [1/5] Copia dell'applicazione nella directory temporanea di staging..."
@@ -37,11 +39,11 @@ echo "➡️  [2/5] Creazione del collegamento simbolico alla cartella Applicazi
 ln -s /Applications "${STAGING_DIR}/Applications"
 
 echo "➡️  [3/5] Creazione dell'immagine disco temporanea (lettura/scrittura)..."
-TEMP_DMG="tmp_stage_${DMG_NAME}"
 hdiutil create -srcfolder "${STAGING_DIR}" -volname "${VOLUME_NAME}" -fs HFS+ -format UDRW "${TEMP_DMG}"
 
 echo "➡️  [4/5] Conversione dell'immagine nel formato finale compresso di sola lettura (UDZO)..."
-hdiutil convert "${TEMP_DMG}" -format UDZO -o "${DMG_NAME}"
+hdiutil convert "${TEMP_DMG}" -format UDZO -o "${FINAL_DMG}"
+mv -f "${FINAL_DMG}" "./${DMG_NAME}"
 
 echo "➡️  [5/5] Pulizia dei file temporanei..."
 rm -f "${TEMP_DMG}"

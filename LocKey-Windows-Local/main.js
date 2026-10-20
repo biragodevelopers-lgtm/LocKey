@@ -1,6 +1,6 @@
 // LocKey Desktop - Main Process (Electron)
 
-const { app, BrowserWindow, ipcMain, clipboard, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -19,6 +19,14 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false
     }
+  });
+
+  // Apre i link esterni nel browser di sistema predefinito (Edge, Chrome, ecc.)
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
   });
 
   // Carica il file index.html compilato di Vite

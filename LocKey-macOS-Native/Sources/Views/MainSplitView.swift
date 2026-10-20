@@ -37,6 +37,11 @@ public struct MainSplitView: View {
     @State private var genNum = true
     @State private var genSym = true
     
+    // Stati per la Verifica Aggiornamenti (Modalità A)
+    @State private var isCheckingUpdate = false
+    @State private var updateCheckResult: String? = nil
+    @State private var updateDownloadURL: URL? = nil
+    
     // Lista di icone SF Symbols predefinite per i Gruppi
     private let groupIcons = ["folder", "briefcase", "person.fill", "house.fill", "creditcard.fill", "gamecontroller.fill", "cart.fill", "heart.fill"]
     
@@ -126,7 +131,22 @@ public struct MainSplitView: View {
                             .foregroundColor(.blue)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
+                    .padding(.top, 6)
+                    
+                    HStack {
+                        Button(action: { showAbout = true; checkForUpdates() }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Text("Verifica aggiornamenti")
+                            }
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 6)
                 }
             }
             .navigationTitle("LocKey")
@@ -481,6 +501,44 @@ public struct MainSplitView: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
+                
+                Divider().opacity(0.4)
+                
+                // Sezione Verifica Aggiornamenti
+                VStack(spacing: 8) {
+                    if isCheckingUpdate {
+                        HStack(spacing: 6) {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Verifica aggiornamenti in corso...")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Button(action: checkForUpdates) {
+                            Label("Verifica disponibilità aggiornamenti", systemImage: "arrow.triangle.2.circlepath")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.bordered)
+                        
+                        if let result = updateCheckResult {
+                            Text(result)
+                                .font(.caption2)
+                                .foregroundColor(updateDownloadURL != nil ? .green : .secondary)
+                                .multilineTextAlignment(.center)
+                            
+                            if let downloadURL = updateDownloadURL {
+                                Button(action: { NSWorkspace.shared.open(downloadURL) }) {
+                                    Label("Scarica Aggiornamento", systemImage: "arrow.down.circle.fill")
+                                        .font(.caption.bold())
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
+                            }
+                        }
+                    }
+                }
+                
                 Button("Chiudi") { showAbout = false }
                     .keyboardShortcut(.defaultAction)
             }
@@ -490,6 +548,48 @@ public struct MainSplitView: View {
     }
     
     // MARK: - Funzioni di business logic della UI
+    
+    private func checkForUpdates() {
+        isCheckingUpdate = true
+        updateCheckResult = nil
+        updateDownloadURL = nil
+        
+        guard let url = URL(string: "https://api.github.com/repos/biragodevelopers-lgtm/LocKey/releases/latest") else {
+            isCheckingUpdate = false
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.setValue("LocKey-macOS-Client", forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = 8
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isCheckingUpdate = false
+                if error != nil {
+                    self.updateCheckResult = "Nessuna connessione internet disponibile (100% offline)."
+                    return
+                }
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    self.updateCheckResult = "Nessun aggiornamento trovato su GitHub."
+                    return
+                }
+                
+                let latestTag = (json["tag_name"] as? String) ?? ""
+                let currentVersion = "v1.0.0"
+                
+                if !latestTag.isEmpty && latestTag != currentVersion {
+                    self.updateCheckResult = "Nuova versione disponibile: \(latestTag)!"
+                    if let htmlUrlStr = json["html_url"] as? String, let htmlUrl = URL(string: htmlUrlStr) {
+                        self.updateDownloadURL = htmlUrl
+                    }
+                } else {
+                    self.updateCheckResult = "LocKey è aggiornato all'ultima versione (\(currentVersion))."
+                }
+            }
+        }.resume()
+    }
     
     private func createGroup() {
         guard !newGroupName.isEmpty else { return }

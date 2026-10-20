@@ -405,6 +405,12 @@ export default function App() {
   const [groupNameInput, setGroupNameInput] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
+  // Stati Verifica Aggiornamenti (Modalità A)
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [updateUrl, setUpdateUrl] = useState<string | null>(null);
+
   const [showAppModal, setShowAppModal] = useState(false);
   const [appNameInput, setAppNameInput] = useState('');
   const [appUrlInput, setAppUrlInput] = useState('');
@@ -1685,6 +1691,37 @@ export default function App() {
     }
   }
 
+  const checkForUpdates = async () => {
+    setIsCheckingUpdate(true);
+    setUpdateStatus(null);
+    setUpdateAvailable(false);
+    setUpdateUrl(null);
+
+    try {
+      const res = await fetch('https://api.github.com/repos/biragodevelopers-lgtm/LocKey/releases/latest');
+      if (!res.ok) {
+        throw new Error('Nessuna release trovata');
+      }
+      const data = await res.json();
+      const latestTag = data.tag_name || '';
+      const currentVersion = 'v1.0.0';
+
+      if (latestTag && latestTag !== currentVersion) {
+        setUpdateAvailable(true);
+        setUpdateStatus(`Nuova versione disponibile: ${latestTag}!`);
+        setUpdateUrl(data.html_url || 'https://github.com/biragodevelopers-lgtm/LocKey/releases/latest');
+      } else {
+        setUpdateAvailable(false);
+        setUpdateStatus(`LocKey è aggiornato all'ultima versione (${currentVersion}).`);
+      }
+    } catch {
+      setUpdateAvailable(false);
+      setUpdateStatus('Nessuna connessione internet disponibile (offline).');
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
   async function toggleBiometrics() {
     try {
       if (isBiometricsEnabled) {
@@ -2222,6 +2259,48 @@ export default function App() {
               <Shield size={13} />
               {t.securityAudit}
             </button>
+          </div>
+
+          {/* Footer BiragoDev & Verifica Aggiornamenti (Modalità A) */}
+          <div className="mt-auto pt-4 border-t border-white/5 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-[11px] text-zinc-500">
+              <span className="font-semibold text-zinc-400">LocKey v1.0.0</span>
+              <a 
+                href="https://www.biragodev.it" 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                BiragoDev
+              </a>
+            </div>
+
+            <button
+              onClick={checkForUpdates}
+              disabled={isCheckingUpdate}
+              className="btn btn-secondary py-1.5 px-2.5 text-[11px] flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all text-zinc-300"
+            >
+              <RefreshCw size={12} className={isCheckingUpdate ? "animate-spin text-indigo-400" : ""} />
+              {isCheckingUpdate ? "Verifica in corso..." : "Verifica aggiornamenti"}
+            </button>
+
+            {updateStatus && (
+              <div className="text-[11px] p-2 rounded bg-black/40 border border-white/10 flex flex-col gap-1.5 mt-1">
+                <span className={updateAvailable ? "text-emerald-400 font-medium" : "text-zinc-400"}>
+                  {updateStatus}
+                </span>
+                {updateUrl && (
+                  <a
+                    href={updateUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-primary py-1 px-2 text-[10px] text-center flex items-center justify-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded"
+                  >
+                    <Download size={11} /> Scarica Aggiornamento
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </aside>
 
