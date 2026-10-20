@@ -17,16 +17,19 @@ public struct LockScreenView: View {
     
     public var body: some View {
         ZStack {
-            // Sfondo con gradienti moderni e vibranti
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(nsColor: .windowBackgroundColor),
-                    Color.purple.opacity(0.15),
-                    Color.blue.opacity(0.15)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            // Sfondo Dark Glassmorphic con gradienti moderni
+            ZStack {
+                Color(red: 0.06, green: 0.06, blue: 0.09)
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.purple.opacity(0.18),
+                        Color.clear,
+                        Color.blue.opacity(0.18)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
             .ignoresSafeArea()
             
             // Card centrale Glassmorphic

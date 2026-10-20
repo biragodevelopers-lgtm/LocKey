@@ -226,16 +226,16 @@ public struct CredentialRowView: View {
                 .frame(width: 30)
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 18)
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .controlBackgroundColor))
-                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                .fill(Color(red: 0.11, green: 0.12, blue: 0.18))
+                .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
         )
     }
     

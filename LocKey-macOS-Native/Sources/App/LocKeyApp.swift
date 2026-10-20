@@ -22,16 +22,15 @@ struct LocKeyApp: App {
             SwiftUI.Group {
                 if vaultStore.isUnlocked {
                     MainSplitView(vaultStore: vaultStore)
-                        .frame(minWidth: 850, minHeight: 550)
+                        .frame(minWidth: 920, minHeight: 600)
                 } else {
                     LockScreenView(vaultStore: vaultStore)
-                        .frame(minWidth: 500, minHeight: 450)
+                        .frame(minWidth: 560, minHeight: 500)
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
-                if vaultStore.isUnlocked {
-                    vaultStore.lock()
-                }
+            .preferredColorScheme(.dark)
+            .onAppear {
+                NSApp.appearance = NSAppearance(named: .darkAqua)
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)) { _ in
                 if vaultStore.isUnlocked {
@@ -39,8 +38,6 @@ struct LocKeyApp: App {
                 }
             }
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unifiedCompact)
         .commands {
             CommandMenu("Vault") {
                 Button("Blocca Vault") {
