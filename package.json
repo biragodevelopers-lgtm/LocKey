@@ -1,6 +1,6 @@
 {
   "name": "lockey-ui",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "LocKey - Local Offline Password Manager UI by BiragoDev (www.biragodev.it)",
   "type": "module",
   "scripts": {
