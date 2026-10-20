@@ -162,7 +162,7 @@ public struct MainSplitView: View {
                             Text("Aggiornamenti")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.white.opacity(0.9))
-                            Text("v1.0.1")
+                            Text("v1.0.2")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.blue)
                                 .padding(.horizontal, 5)
@@ -1169,7 +1169,7 @@ public struct MainSplitView: View {
                 VStack(spacing: 4) {
                     Text("LocKey")
                         .font(.title2.bold())
-                    Text("Versione 1.0.1 (Build Nativa macOS)")
+                    Text("Versione 1.0.2 (Build Nativa macOS)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -1270,7 +1270,7 @@ public struct MainSplitView: View {
                 }
                 
                 let latestTag = (json["tag_name"] as? String) ?? ""
-                let currentVersion = "v1.0.1"
+                let currentVersion = "v1.0.2"
                 
                 if !latestTag.isEmpty && latestTag != currentVersion {
                     self.updateCheckResult = "Nuova versione disponibile: \(latestTag)!"
