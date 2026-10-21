@@ -65,11 +65,6 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-
-  // Blocco automatico quando l'applicazione perde il focus (per sicurezza)
-  mainWindow.on('blur', () => {
-    mainWindow.webContents.send('app-blur');
-  });
 }
 
 app.whenReady().then(() => {

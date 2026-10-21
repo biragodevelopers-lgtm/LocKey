@@ -15,6 +15,8 @@ public struct MainSplitView: View {
     @State private var showAddGroup = false
     @State private var newGroupName = ""
     @State private var newGroupIcon = "folder.fill"
+    @State private var groupToDelete: Group? = nil
+    @State private var showDeleteGroupAlert = false
     
     @State private var showAddApp = false
     @State private var newAppName = ""
@@ -162,7 +164,7 @@ public struct MainSplitView: View {
                             Text("Aggiornamenti")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.white.opacity(0.9))
-                            Text("v1.0.5")
+                            Text("v1.0.6")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.blue)
                                 .padding(.horizontal, 5)
@@ -305,47 +307,20 @@ public struct MainSplitView: View {
                         ScrollView {
                             LazyVStack(spacing: 6) {
                                 ForEach(vaultStore.groups) { group in
-                                    let isSelected = selectedGroupID == group.id
-                                    Button(action: { selectedGroupID = group.id }) {
-                                        HStack(spacing: 10) {
-                                            ZStack {
-                                                RoundedRectangle(cornerRadius: 7)
-                                                    .fill(isSelected ? Color.purple.opacity(0.3) : Color.white.opacity(0.05))
-                                                    .frame(width: 28, height: 28)
-                                                Image(systemName: group.icon)
-                                                    .font(.system(size: 13, weight: .semibold))
-                                                    .foregroundColor(isSelected ? .purple : .secondary)
-                                            }
-                                            
-                                            Text(group.name)
-                                                .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                                                .foregroundColor(isSelected ? .white : .white.opacity(0.8))
-                                                .lineLimit(1)
-                                            
-                                            Spacer()
-                                            
-                                            Text("\(group.applications.count)")
-                                                .font(.system(size: 11, weight: .bold))
-                                                .foregroundColor(isSelected ? .purple : .secondary)
-                                                .padding(.horizontal, 7)
-                                                .padding(.vertical, 2)
-                                                .background(isSelected ? Color.purple.opacity(0.2) : Color.white.opacity(0.05))
-                                                .cornerRadius(6)
+                                    GroupSidebarRowView(
+                                        group: group,
+                                        isSelected: selectedGroupID == group.id,
+                                        onSelect: { selectedGroupID = group.id },
+                                        onDelete: {
+                                            groupToDelete = group
+                                            showDeleteGroupAlert = true
                                         }
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 8)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(isSelected ? Color.purple.opacity(0.16) : Color.white.opacity(0.02))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(isSelected ? Color.purple.opacity(0.45) : Color.clear, lineWidth: 1)
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
+                                    )
                                     .contextMenu {
-                                        Button(role: .destructive, action: { deleteGroup(group) }) {
+                                        Button(role: .destructive, action: {
+                                            groupToDelete = group
+                                            showDeleteGroupAlert = true
+                                        }) {
                                             Label("Elimina Gruppo", systemImage: "trash")
                                         }
                                     }
@@ -814,6 +789,15 @@ public struct MainSplitView: View {
                 selectedAppID = nil
             }
         }
+        .alert("Elimina Gruppo", isPresented: $showDeleteGroupAlert, presenting: groupToDelete) { group in
+            Button("Elimina", role: .destructive) {
+                deleteGroup(group)
+            }
+            Button("Annulla", role: .cancel) {}
+        } message: { group in
+            Text("Sei sicuro di voler eliminare il gruppo \"\(group.name)\" e tutte le sue applicazioni?")
+        }
+        
         // MARK: - Fogli Modali (Sheets)
         
         // 1. Nuovo Gruppo (Griglia 4x2 ordinata)
@@ -1169,7 +1153,7 @@ public struct MainSplitView: View {
                 VStack(spacing: 4) {
                     Text("LocKey")
                         .font(.title2.bold())
-                    Text("Versione 1.0.5 (Build Nativa macOS)")
+                    Text("Versione 1.0.6 (Build Nativa macOS)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -1270,7 +1254,7 @@ public struct MainSplitView: View {
                 }
                 
                 let latestTag = (json["tag_name"] as? String) ?? ""
-                let currentVersion = "v1.0.5"
+                let currentVersion = "v1.0.6"
                 
                 if !latestTag.isEmpty && latestTag != currentVersion {
                     self.updateCheckResult = "Nuova versione disponibile: \(latestTag)!"
@@ -1473,6 +1457,70 @@ public struct MainSplitView: View {
         alert.informativeText = message
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+}
+
+// MARK: - Riga Gruppo nella Sidebar
+
+struct GroupSidebarRowView: View {
+    let group: Group
+    let isSelected: Bool
+    let onSelect: () -> Void
+    let onDelete: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(isSelected ? Color.purple.opacity(0.3) : Color.white.opacity(0.05))
+                    .frame(width: 28, height: 28)
+                Image(systemName: group.icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(isSelected ? .purple : .secondary)
+            }
+            
+            Text(group.name)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                .foregroundColor(isSelected ? .white : .white.opacity(0.8))
+                .lineLimit(1)
+            
+            Spacer()
+            
+            Text("\(group.applications.count)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(isSelected ? .purple : .secondary)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(isSelected ? Color.purple.opacity(0.2) : Color.white.opacity(0.05))
+                .cornerRadius(6)
+            
+            if isSelected {
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 11))
+                        .foregroundColor(.red.opacity(0.85))
+                        .padding(4)
+                        .background(Color.red.opacity(0.12))
+                        .cornerRadius(5)
+                }
+                .buttonStyle(.plain)
+                .help("Elimina questo gruppo")
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(isSelected ? Color.purple.opacity(0.16) : Color.white.opacity(0.02))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isSelected ? Color.purple.opacity(0.45) : Color.clear, lineWidth: 1)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onSelect()
+        }
     }
 }
 

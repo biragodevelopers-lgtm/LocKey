@@ -348,13 +348,7 @@ export default function App() {
 
       loadLocalVault();
 
-      // Blocco automatico quando si perde il focus
-      (window as any).electronAPI.onAppBlur(() => {
-        setIsUnlocked(false);
-        setMasterKey(null);
-        setVaultDb(null);
-        setMasterPassword('');
-      });
+
     }
   }, [isElectron]);
 
@@ -410,6 +404,17 @@ export default function App() {
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupNameInput, setGroupNameInput] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showBackupMenu, setShowBackupMenu] = useState(false);
 
@@ -1316,14 +1321,12 @@ export default function App() {
     setShowGroupModal(false);
   }
 
-  async function handleDeleteGroup(groupId: string) {
+  async function executeDeleteGroup(groupId: string) {
     if (!vaultDb) return;
-    if (!confirm(t.confirmDeleteGroup)) return;
 
     const updatedDb = { ...vaultDb };
     updatedDb.groups = updatedDb.groups.filter((g) => g.id !== groupId);
 
-    // Registra tombstone per la sincronizzazione
     if (!updatedDb.tombstones) updatedDb.tombstones = [];
     updatedDb.tombstones.push({
       id: groupId,
@@ -1333,9 +1336,21 @@ export default function App() {
 
     await syncVault(updatedDb);
     if (selectedGroupId === groupId) {
-      setSelectedGroupId(updatedDb.groups[0]?.id || null);
-      setSelectedAppId(null);
+      const nextGroup = updatedDb.groups[0] || null;
+      setSelectedGroupId(nextGroup?.id || null);
+      setSelectedAppId(nextGroup?.applications[0]?.id || null);
     }
+  }
+
+  function requestDeleteGroup(groupId: string, groupName: string) {
+    setDeleteConfirmModal({
+      isOpen: true,
+      title: lang === 'it' ? 'Elimina Gruppo' : 'Delete Group',
+      message: lang === 'it'
+        ? `Sei sicuro di voler eliminare il gruppo "${groupName}" e tutte le relative applicazioni?`
+        : `Are you sure you want to delete group "${groupName}" and all its applications?`,
+      onConfirm: () => executeDeleteGroup(groupId),
+    });
   }
 
   // ----------------------------------------------------
@@ -1396,9 +1411,8 @@ export default function App() {
     setShowAppModal(false);
   }
 
-  async function handleDeleteApp(appId: string) {
+  async function executeDeleteApp(appId: string) {
     if (!vaultDb || !selectedGroupId) return;
-    if (!confirm(t.confirmDeleteApp)) return;
 
     const updatedDb = { ...vaultDb };
     const group = updatedDb.groups.find((g) => g.id === selectedGroupId);
@@ -1406,7 +1420,6 @@ export default function App() {
 
     group.applications = group.applications.filter((a) => a.id !== appId);
 
-    // Registra tombstone per la sincronizzazione
     if (!updatedDb.tombstones) updatedDb.tombstones = [];
     updatedDb.tombstones.push({
       id: appId,
@@ -1416,8 +1429,18 @@ export default function App() {
 
     await syncVault(updatedDb);
     if (selectedAppId === appId) {
-      setSelectedAppId(null);
+      const remainingApps = group.applications;
+      setSelectedAppId(remainingApps[0]?.id || null);
     }
+  }
+
+  function requestDeleteApp(appId: string) {
+    setDeleteConfirmModal({
+      isOpen: true,
+      title: t.deleteApp,
+      message: t.confirmDeleteApp,
+      onConfirm: () => executeDeleteApp(appId),
+    });
   }
 
   // ----------------------------------------------------
@@ -1482,7 +1505,7 @@ export default function App() {
     setShowCredModal(false);
   }
 
-  async function handleDeleteCred(credId: string) {
+  async function executeDeleteCred(credId: string) {
     if (!vaultDb || !selectedGroupId || !selectedAppId) return;
     const group = vaultDb.groups.find((g) => g.id === selectedGroupId);
     if (!group) return;
@@ -1490,19 +1513,14 @@ export default function App() {
     const app = group.applications.find((a) => a.id === selectedAppId);
     if (!app) return;
 
-    if (app.credentials.length <= 1) {
-      alert(t.cantDeleteOnlyCred);
-      return;
-    }
-
-    if (!confirm(t.confirmDeleteCred)) return;
-
     const updatedDb = { ...vaultDb };
-    const updatedGroup = updatedDb.groups.find((g) => g.id === selectedGroupId)!;
-    const updatedApp = updatedGroup.applications.find((a) => a.id === selectedAppId)!;
+    const updatedGroup = updatedDb.groups.find((g) => g.id === selectedGroupId);
+    if (!updatedGroup) return;
+    const updatedApp = updatedGroup.applications.find((a) => a.id === selectedAppId);
+    if (!updatedApp) return;
+
     updatedApp.credentials = updatedApp.credentials.filter((c) => c.id !== credId);
 
-    // Registra tombstone per la sincronizzazione
     if (!updatedDb.tombstones) updatedDb.tombstones = [];
     updatedDb.tombstones.push({
       id: credId,
@@ -1511,6 +1529,15 @@ export default function App() {
     });
 
     await syncVault(updatedDb);
+  }
+
+  function requestDeleteCred(credId: string) {
+    setDeleteConfirmModal({
+      isOpen: true,
+      title: lang === 'it' ? 'Elimina Credenziale' : 'Delete Credential',
+      message: t.confirmDeleteCred,
+      onConfirm: () => executeDeleteCred(credId),
+    });
   }
 
   function togglePasswordVisibility(id: string) {
@@ -1706,7 +1733,7 @@ export default function App() {
       }
       const data = await res.json();
       const latestTag = data.tag_name || '';
-      const currentVersion = 'v1.0.5';
+      const currentVersion = 'v1.0.6';
 
       if (latestTag && latestTag !== currentVersion) {
         setUpdateAvailable(true);
@@ -2124,7 +2151,7 @@ export default function App() {
           >
             <RefreshCw size={12} className={`text-blue-400 ${isCheckingUpdate ? "animate-spin" : ""}`} />
             <span>Aggiornamenti</span>
-            <span className="text-[10px] font-bold text-blue-400 bg-blue-500/20 px-1.5 py-0.5 rounded">v1.0.5</span>
+            <span className="text-[10px] font-bold text-blue-400 bg-blue-500/20 px-1.5 py-0.5 rounded">v1.0.6</span>
           </button>
 
           {/* Menu Backup (.lockey) */}
@@ -2290,7 +2317,7 @@ export default function App() {
                     }`}>
                       {group.applications.length}
                     </span>
-                    <div className="hidden group-hover:flex items-center gap-1 shrink-0">
+                    <div className={`items-center gap-1 shrink-0 ${isSelected ? 'flex' : 'hidden group-hover:flex'}`}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2298,23 +2325,21 @@ export default function App() {
                           setGroupNameInput(group.name);
                           setShowGroupModal(true);
                         }}
-                        className="p-1 rounded text-zinc-400 hover:text-white"
+                        className="p-1 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
                         title="Rinomina Gruppo"
                       >
                         <Edit2 size={11} />
                       </button>
-                      {vaultDb.groups.length > 1 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteGroup(group.id);
-                          }}
-                          className="p-1 rounded text-zinc-400 hover:text-red-400"
-                          title="Elimina Gruppo"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          requestDeleteGroup(group.id, group.name);
+                        }}
+                        className="p-1 rounded text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                        title="Elimina Gruppo"
+                      >
+                        <Trash2 size={11} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -2487,7 +2512,7 @@ export default function App() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteApp(app.id);
+                              requestDeleteApp(app.id);
                             }}
                             className="p-1 text-zinc-400 hover:text-red-400 rounded transition-colors"
                             title={t.deleteApp}
@@ -2731,7 +2756,7 @@ export default function App() {
 
                             {/* Tasto Elimina */}
                             <button
-                              onClick={() => handleDeleteCred(cred.id)}
+                              onClick={() => requestDeleteCred(cred.id)}
                               className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-white/10 transition-colors cursor-pointer"
                               title={t.deleteAccount}
                             >
@@ -2884,6 +2909,46 @@ export default function App() {
       </div>
 
       {/* --------------------------------------------- */}
+      
+      {/* Modal Conferma Eliminazione in-app (non blocca né sfuoca la finestra) */}
+      {deleteConfirmModal.isOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#141522] border border-white/10 rounded-2xl max-w-sm w-full p-6 text-center flex flex-col items-center gap-4 shadow-2xl animate-fade-in relative">
+            <div className="w-12 h-12 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
+              <Trash2 size={24} />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-white">{deleteConfirmModal.title}</h3>
+              <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                {deleteConfirmModal.message}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 w-full mt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+                className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 transition-colors cursor-pointer"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const run = deleteConfirmModal.onConfirm;
+                  setDeleteConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                  run();
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-lg shadow-red-600/30 transition-colors cursor-pointer"
+              >
+                {t.delete}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODALS SECTION */}
 
       {/* About Modal */}
@@ -2905,7 +2970,7 @@ export default function App() {
 
             <div>
               <h3 className="text-lg font-bold text-white">LocKey Desktop</h3>
-              <p className="text-xs text-purple-400 font-semibold mt-0.5">Versione v1.0.5</p>
+              <p className="text-xs text-purple-400 font-semibold mt-0.5">Versione v1.0.6</p>
               <p className="text-xs text-zinc-400 mt-2">
                 Gestore di password locale, ultra-sicuro e 100% offline cifrato in AES-256-GCM.
               </p>
