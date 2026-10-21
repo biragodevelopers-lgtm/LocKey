@@ -14,6 +14,7 @@ dist/
 
 # Swift / macOS build
 Build/
+.build/
 *.app
 tmp_dmg_staging/
 tmp_stage_*

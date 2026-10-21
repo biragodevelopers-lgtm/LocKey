@@ -1704,7 +1704,7 @@ export default function App() {
       }
       const data = await res.json();
       const latestTag = data.tag_name || '';
-      const currentVersion = 'v1.0.3';
+      const currentVersion = 'v1.0.4';
 
       if (latestTag && latestTag !== currentVersion) {
         setUpdateAvailable(true);
@@ -2264,7 +2264,7 @@ export default function App() {
           {/* Footer BiragoDev & Verifica Aggiornamenti (Modalità A) */}
           <div className="mt-auto pt-4 border-t border-white/5 flex flex-col gap-2">
             <div className="flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="font-semibold text-zinc-400">LocKey v1.0.3</span>
+              <span className="font-semibold text-zinc-400">LocKey v1.0.4</span>
               <a 
                 href="https://www.biragodev.it" 
                 target="_blank" 

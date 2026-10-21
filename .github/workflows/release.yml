@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag di rilascio (es. v1.0.3)'
+        description: 'Tag di rilascio (es. v1.0.4)'
         required: true
-        default: 'v1.0.3'
+        default: 'v1.0.4'
 
 permissions:
   contents: write
@@ -34,9 +34,12 @@ jobs:
           cache: 'npm'
 
       - name: Install Frontend Dependencies & Build UI
+        shell: bash
         run: |
           npm install
           npm run build
+          mkdir -p LocKey-Windows-Local/dist
+          cp -R dist/* LocKey-Windows-Local/dist/
 
       - name: Install Electron Dependencies & Build Windows Installer
         working-directory: ./LocKey-Windows-Local

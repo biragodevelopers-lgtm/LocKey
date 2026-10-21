@@ -9,11 +9,13 @@ let clipboardTimer = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 600,
+    title: 'LocKey',
+    width: 960,
+    height: 640,
     minWidth: 850,
     minHeight: 550,
-    titleBarStyle: 'hiddenInset',
+    backgroundColor: '#0f0f17',
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -29,13 +31,32 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  // Carica il file index.html compilato di Vite
-  const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    mainWindow.loadFile(indexPath);
-  } else {
-    // Fallback per lo sviluppo
-    mainWindow.loadURL('http://localhost:3000');
+  // Cerca il file index.html compilato di Vite nei possibili percorsi di runtime
+  const candidatePaths = [
+    path.join(__dirname, 'dist', 'index.html'),
+    path.join(__dirname, 'index.html'),
+    path.join(app.getAppPath(), 'dist', 'index.html'),
+    path.join(app.getAppPath(), 'index.html'),
+    path.join(__dirname, '..', 'dist', 'index.html')
+  ];
+
+  let loaded = false;
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      console.log('LocKey: Caricamento interfaccia da', p);
+      mainWindow.loadFile(p);
+      loaded = true;
+      break;
+    }
+  }
+
+  if (!loaded) {
+    console.error('LocKey: Impossibile trovare index.html nei percorsi candidati:', candidatePaths);
+    if (!app.isPackaged) {
+      mainWindow.loadURL('http://localhost:3000');
+    } else {
+      mainWindow.loadURL(`data:text/html,<html><body style="background:#0f0f17;color:white;font-family:sans-serif;padding:40px;text-align:center;"><h2>Errore caricamento LocKey</h2><p>Impossibile trovare i file dell'interfaccia utente.</p></body></html>`);
+    }
   }
 
   // Nasconde la barra dei menu di default su Windows/Linux
