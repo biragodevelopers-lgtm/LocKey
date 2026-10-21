@@ -24,7 +24,6 @@ import {
   User,
   WifiOff,
   X,
-  Sparkles,
 } from 'lucide-react';
 import * as cryptoHelper from './crypto';
 import * as api from './api';
@@ -95,6 +94,7 @@ const translations = {
     selectGroup: "Seleziona o crea un gruppo",
     newApp: "Nuova Applicazione",
     editApp: "Modifica Applicazione",
+    deleteApp: "Elimina Applicazione",
     confirmDeleteApp: "Sei sicuro di voler eliminare questa applicazione?",
     
     // Detail Panel
@@ -217,6 +217,7 @@ const translations = {
     selectGroup: "Select or create a group",
     newApp: "New Application",
     editApp: "Edit Application",
+    deleteApp: "Delete Application",
     confirmDeleteApp: "Are you sure you want to delete this application?",
     
     // Detail Panel
@@ -403,11 +404,7 @@ export default function App() {
   // Clipboard Clear Timer State
   const [clipboardTimer, setClipboardTimer] = useState<number | null>(null);
 
-  // Password Generator State (independent panel)
-  const [genLength, setGenLength] = useState(16);
-  const [genNumbers, setGenNumbers] = useState(true);
-  const [genSymbols, setGenSymbols] = useState(true);
-  const [generatedPassword, setGeneratedPassword] = useState('');
+
 
   // Modal / Editor States
   const [showGroupModal, setShowGroupModal] = useState(false);
@@ -563,13 +560,7 @@ export default function App() {
     };
   }, [vaultDb, selectedAppId]);
 
-  // Automatic Password Generation
-  // ----------------------------------------------------
-  useEffect(() => {
-    if (isLoggedIn) {
-      setGeneratedPassword(cryptoHelper.generateSecurePassword(genLength, genSymbols, genNumbers));
-    }
-  }, [genLength, genNumbers, genSymbols, isLoggedIn]);
+
 
   useEffect(() => {
     if (searchTerm) {
@@ -2202,6 +2193,18 @@ export default function App() {
                   <Shield size={13} className="text-amber-400 shrink-0" />
                   <span>Audit di Sicurezza Password</span>
                 </button>
+                {isBiometricsSupported && (
+                  <button
+                    onClick={() => {
+                      setShowBackupMenu(false);
+                      toggleBiometrics();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer border-t border-white/5 pt-2"
+                  >
+                    <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
+                    <span>{isBiometricsEnabled ? t.disableBiometrics : t.enableBiometrics}</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -2805,6 +2808,18 @@ export default function App() {
                                       className="text-zinc-400 hover:text-white p-1 cursor-pointer"
                                     >
                                       <Copy size={11} />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        if (confirm(lang === 'it' ? "Ripristinare questa vecchia password?" : "Restore this old password?")) {
+                                          handleRestorePassword(cred.id, hist.passwordValue);
+                                        }
+                                      }}
+                                      className="text-zinc-400 hover:text-purple-400 p-1 cursor-pointer"
+                                      type="button"
+                                      title={lang === 'it' ? "Ripristina" : "Restore"}
+                                    >
+                                      <RefreshCw size={11} />
                                     </button>
                                   </div>
                                 </div>
