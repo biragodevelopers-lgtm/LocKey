@@ -16,6 +16,15 @@ import {
   Globe,
   Download,
   Upload,
+  Folder,
+  FolderPlus,
+  Info,
+  ChevronDown,
+  ShieldCheck,
+  User,
+  WifiOff,
+  X,
+  Sparkles,
 } from 'lucide-react';
 import * as cryptoHelper from './crypto';
 import * as api from './api';
@@ -404,6 +413,8 @@ export default function App() {
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupNameInput, setGroupNameInput] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showBackupMenu, setShowBackupMenu] = useState(false);
 
   // Stati Verifica Aggiornamenti (Modalità A)
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
@@ -1704,7 +1715,7 @@ export default function App() {
       }
       const data = await res.json();
       const latestTag = data.tag_name || '';
-      const currentVersion = 'v1.0.4';
+      const currentVersion = 'v1.0.5';
 
       if (latestTag && latestTag !== currentVersion) {
         setUpdateAvailable(true);
@@ -2075,242 +2086,285 @@ export default function App() {
 
   // 5. Main Dashboard (Vault Unlocked)
   return (
-    <div className="flex flex-col w-full min-height-100vh overflow-hidden animate-fade-in">
+    <div className="flex flex-col w-full h-screen bg-[#0c0c12] text-zinc-100 overflow-hidden select-none animate-fade-in font-sans">
       {/* Top Navbar */}
-      <header className="glass-panel border-r-0 border-l-0 border-t-0 rounded-none px-6 py-4 flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 border border-indigo-500/20">
-            <Shield size={20} />
+      <header className="h-16 px-6 bg-[#13131c] border-b border-white/[0.08] flex items-center justify-between shrink-0 z-20">
+        {/* Brand Left */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-0.5 shadow-md shadow-purple-600/30 flex items-center justify-center">
+            <div className="w-full h-full rounded-[10px] bg-[#1a1a28] flex items-center justify-center">
+              <Lock className="text-white drop-shadow" size={17} />
+            </div>
           </div>
-          <span className="font-bold text-white tracking-wide text-lg">{t.appName}</span>
-          <span className="text-xs px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-zinc-400">
-            {t.nasTag}
-          </span>
+          <span className="font-bold text-white tracking-tight text-lg">LocKey</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/90">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+            <span className="text-[10px] font-bold tracking-wider">100% OFFLINE</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-zinc-400 mr-2 flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-            {t.userLabel}: <strong className="text-zinc-200">{accountUsername}</strong>
-          </div>
-          
-          {/* Language selector in navbar */}
-          <button onClick={toggleLang} className="btn btn-secondary flex items-center gap-1 py-1.5 px-3 text-xs">
-            <Globe size={13} /> {lang === 'it' ? 'EN' : 'IT'}
+        {/* Center Search Bar */}
+        <div className="relative w-72 md:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={13} />
+          <input
+            type="text"
+            placeholder={lang === 'it' ? "Cerca applicazione o account..." : "Search apps or accounts..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-white/[0.06] border border-white/10 rounded-lg pl-9 pr-8 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.08] transition-all"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Actions Right */}
+        <div className="flex items-center gap-2.5">
+          {/* Pulsante Verifica Aggiornamenti */}
+          <button
+            onClick={() => { setShowAboutModal(true); checkForUpdates(); }}
+            className="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-white/90 flex items-center gap-2 transition-all cursor-pointer"
+            title="Verifica disponibilità aggiornamenti su GitHub"
+          >
+            <RefreshCw size={12} className={`text-blue-400 ${isCheckingUpdate ? "animate-spin" : ""}`} />
+            <span>Aggiornamenti</span>
+            <span className="text-[10px] font-bold text-blue-400 bg-blue-500/20 px-1.5 py-0.5 rounded">v1.0.5</span>
           </button>
 
-          <button onClick={handleLock} className="btn btn-secondary flex items-center gap-1.5 py-1.5">
-            <Lock size={15} /> {t.lock}
+          {/* Menu Backup (.lockey) */}
+          <div className="relative">
+            <button
+              onClick={() => setShowBackupMenu(!showBackupMenu)}
+              className="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-white/90 flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Download size={12} />
+              <span>Backup</span>
+              <ChevronDown size={11} className="text-zinc-400" />
+            </button>
+
+            {showBackupMenu && (
+              <div
+                className="absolute right-0 mt-2 w-64 rounded-xl bg-[#1a1a26] border border-white/10 shadow-2xl p-1.5 z-50 flex flex-col gap-1 backdrop-blur-xl animate-fade-in"
+                onMouseLeave={() => setShowBackupMenu(false)}
+              >
+                <button
+                  onClick={() => { setShowBackupMenu(false); handleExportBackup(); }}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Download size={13} className="text-purple-400 shrink-0" />
+                  <span>Esporta Backup Cifrato (.lockey)</span>
+                </button>
+                {isElectron ? (
+                  <button
+                    onClick={() => { setShowBackupMenu(false); handleImportBackup(null); }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Upload size={13} className="text-blue-400 shrink-0" />
+                    <span>Importa Backup (.lockey)</span>
+                  </button>
+                ) : (
+                  <label className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 cursor-pointer transition-all">
+                    <Upload size={13} className="text-blue-400 shrink-0" />
+                    <span>Importa Backup (.lockey)</span>
+                    <input
+                      type="file"
+                      accept=".lockey"
+                      onChange={(e) => { setShowBackupMenu(false); handleImportBackup(e); }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+                <label className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 cursor-pointer transition-all border-t border-white/5 pt-2">
+                  <Plus size={13} className="text-emerald-400 shrink-0" />
+                  <span>Importa da file CSV</span>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => { setShowBackupMenu(false); handleCSVImport(e); }}
+                    className="hidden"
+                  />
+                </label>
+                <button
+                  onClick={() => {
+                    setShowBackupMenu(false);
+                    setSelectedGroupId(null);
+                    setSelectedAppId(null);
+                    setSearchTerm('');
+                    setIsAuditActive(true);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer border-t border-white/5 pt-2"
+                >
+                  <Shield size={13} className="text-amber-400 shrink-0" />
+                  <span>Audit di Sicurezza Password</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Pulsante Info */}
+          <button
+            onClick={() => setShowAboutModal(true)}
+            className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 transition-all cursor-pointer"
+            title="Informazioni su LocKey & BiragoDev"
+          >
+            <Info size={14} />
           </button>
-          <button onClick={handleLogout} className="btn btn-danger flex items-center gap-1.5 py-1.5">
-            <LogOut size={15} /> {t.logout}
+
+          {/* UNICO Pulsante Blocca Vault */}
+          <button
+            onClick={handleLock}
+            className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-red-600/90 to-pink-600/90 hover:from-red-500 hover:to-pink-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-red-500/20 transition-all cursor-pointer"
+            title="Blocca immediatamente il Vault"
+          >
+            <Lock size={12} className="stroke-[2.5]" />
+            <span>Blocca Vault</span>
           </button>
         </div>
       </header>
 
-      {/* Main Workspace */}
-      <div className="flex flex-1 overflow-hidden app-container">
-        {/* Left Column: Groups */}
-        <aside className="w-64 border-r border-white/5 bg-black/10 flex flex-col overflow-y-auto p-4 shrink-0">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t.groupsTitle}</h3>
+      {/* Main Workspace (3 Colonne Splittate) */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* COLONNA 1: SIDEBAR GRUPPI */}
+        <aside className="w-60 bg-[#13131c]/90 border-r border-white/[0.07] flex flex-col shrink-0 select-none">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 pt-4 pb-2.5">
+            <span className="text-[11px] font-bold text-zinc-500 tracking-wider uppercase">
+              I TUOI GRUPPI
+            </span>
             <button
               onClick={() => {
                 setEditingGroupId(null);
                 setGroupNameInput('');
                 setShowGroupModal(true);
               }}
-              className="btn-icon"
-              title={t.createGroup}
+              className="w-5 h-5 rounded-md bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 flex items-center justify-center transition-all cursor-pointer"
+              title="Crea Nuovo Gruppo"
             >
-              <Plus size={16} />
+              <Plus size={12} className="stroke-[3]" />
             </button>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            {vaultDb?.groups.map((group) => (
-              <div
-                key={group.id}
-                onClick={() => {
-                  setSelectedGroupId(group.id);
-                  setSelectedAppId(null);
-                  setSearchTerm('');
-                }}
-                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
-                  selectedGroupId === group.id && !searchTerm
-                    ? 'bg-indigo-500/10 border border-indigo-500/25 text-indigo-300'
-                    : 'bg-white/[0.01] border border-transparent text-zinc-400 hover:bg-white/5'
-                }`}
-              >
-                <span className="font-medium truncate mr-2">{group.name}</span>
-                <div className="flex items-center gap-1 shrink-0 opacity-0 hover:opacity-100 group-hover:opacity-100">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingGroupId(group.id);
-                      setGroupNameInput(group.name);
-                      setShowGroupModal(true);
-                    }}
-                    className="btn-icon p-1 hover:text-white"
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  {vaultDb.groups.length > 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteGroup(group.id);
-                      }}
-                      className="btn-icon p-1 hover:text-red-400"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  )}
-                </div>
+          {/* Lista Gruppi */}
+          <div className="flex-1 overflow-y-auto px-3 py-1 flex flex-col gap-1.5">
+            {!vaultDb || vaultDb.groups.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                <FolderPlus size={28} className="text-zinc-600 mb-2" />
+                <span className="text-xs text-zinc-500">Nessun gruppo</span>
               </div>
-            ))}
-          </div>
-
-          {/* Search section */}
-          <div className="mt-6 pt-6 border-t border-white/5">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={15} />
-              <input
-                type="text"
-                placeholder={lang === 'it' ? "Cerca password..." : "Search passwords..."}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Tools & Import Section */}
-          <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2">
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-              {t.toolsSection}
-            </span>
-            <label className="btn btn-secondary py-1.5 px-3 text-xs text-center cursor-pointer flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all">
-              <Plus size={13} />
-              {t.importCSV}
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleCSVImport}
-                className="hidden"
-              />
-            </label>
-
-            {/* Esportazione Backup */}
-            <button
-              onClick={handleExportBackup}
-              className="btn btn-secondary py-1.5 px-3 text-xs flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all"
-            >
-              <Download size={13} />
-              {t.exportBackup}
-            </button>
-
-            {/* Importazione Backup */}
-            {isElectron ? (
-              <button
-                onClick={() => handleImportBackup(null)}
-                className="btn btn-secondary py-1.5 px-3 text-xs flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all"
-              >
-                <Upload size={13} />
-                {t.importBackup}
-              </button>
             ) : (
-              <label className="btn btn-secondary py-1.5 px-3 text-xs text-center cursor-pointer flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all">
-                <Upload size={13} />
-                {t.importBackup}
-                <input
-                  type="file"
-                  accept=".lockey"
-                  onChange={handleImportBackup}
-                  className="hidden"
-                />
-              </label>
+              vaultDb.groups.map((group) => {
+                const isSelected = selectedGroupId === group.id && !searchTerm && !isAuditActive;
+                return (
+                  <div
+                    key={group.id}
+                    onClick={() => {
+                      setSelectedGroupId(group.id);
+                      setSelectedAppId(null);
+                      setSearchTerm('');
+                      setIsAuditActive(false);
+                    }}
+                    className={`group w-full px-2.5 py-2 rounded-xl flex items-center gap-2.5 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-purple-500/15 border border-purple-500/40 text-white shadow-sm'
+                        : 'bg-white/[0.02] hover:bg-white/[0.05] border border-transparent text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                      isSelected ? 'bg-purple-500/25 text-purple-300' : 'bg-white/5 text-zinc-400 group-hover:text-zinc-200'
+                    }`}>
+                      <Folder size={14} />
+                    </div>
+                    <span className="text-xs font-medium truncate flex-1 text-left">
+                      {group.name}
+                    </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
+                      isSelected ? 'bg-purple-500/20 text-purple-300' : 'bg-white/5 text-zinc-500'
+                    }`}>
+                      {group.applications.length}
+                    </span>
+                    <div className="hidden group-hover:flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingGroupId(group.id);
+                          setGroupNameInput(group.name);
+                          setShowGroupModal(true);
+                        }}
+                        className="p-1 rounded text-zinc-400 hover:text-white"
+                        title="Rinomina Gruppo"
+                      >
+                        <Edit2 size={11} />
+                      </button>
+                      {vaultDb.groups.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group.id);
+                          }}
+                          className="p-1 rounded text-zinc-400 hover:text-red-400"
+                          title="Elimina Gruppo"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
             )}
+          </div>
 
-            {isBiometricsSupported && !isElectron && (
-              <button
-                onClick={toggleBiometrics}
-                className="btn btn-secondary py-1.5 px-3 text-xs flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all"
-              >
-                <Shield size={13} />
-                {isBiometricsEnabled ? t.disableBiometrics : t.enableBiometrics}
-              </button>
-            )}
 
-            {/* Audit di Sicurezza */}
+
+
+
+          {/* Bottom Button + Footer BiragoDev */}
+          <div className="p-3 border-t border-white/[0.06] flex flex-col gap-3">
             <button
               onClick={() => {
-                setSelectedGroupId(null);
-                setSelectedAppId(null);
-                setSearchTerm('');
-                setIsAuditActive(true);
+                setEditingGroupId(null);
+                setGroupNameInput('');
+                setShowGroupModal(true);
               }}
-              className={`btn py-1.5 px-3 text-xs flex items-center justify-center gap-1.5 transition-all ${
-                isAuditActive 
-                  ? 'btn-primary bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 shadow shadow-indigo-500/10' 
-                  : 'btn-secondary hover:bg-white/5 border-transparent'
-              }`}
+              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600/85 to-blue-600/85 hover:from-purple-500 hover:to-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 transition-all cursor-pointer"
             >
-              <Shield size={13} />
-              {t.securityAudit}
+              <Plus size={14} className="stroke-[2.5]" />
+              <span>Nuovo Gruppo</span>
             </button>
-          </div>
 
-          {/* Footer BiragoDev & Verifica Aggiornamenti (Modalità A) */}
-          <div className="mt-auto pt-4 border-t border-white/5 flex flex-col gap-2">
-            <div className="flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="font-semibold text-zinc-400">LocKey v1.0.4</span>
-              <a 
-                href="https://www.biragodev.it" 
-                target="_blank" 
+            <div className="flex items-center justify-between text-[11px] px-1 pt-0.5">
+              <div className="flex items-center gap-1 text-emerald-400 font-medium">
+                <ShieldCheck size={12} />
+                <span className="text-zinc-400">AES-256 Locale</span>
+              </div>
+              <a
+                href="https://www.biragodev.it"
+                target="_blank"
                 rel="noreferrer"
-                className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="font-semibold text-purple-400 hover:text-purple-300 transition-colors"
               >
                 BiragoDev
               </a>
             </div>
-
-            <button
-              onClick={checkForUpdates}
-              disabled={isCheckingUpdate}
-              className="btn btn-secondary py-1.5 px-2.5 text-[11px] flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all text-zinc-300"
-            >
-              <RefreshCw size={12} className={isCheckingUpdate ? "animate-spin text-indigo-400" : ""} />
-              {isCheckingUpdate ? "Verifica in corso..." : "Verifica aggiornamenti"}
-            </button>
-
-            {updateStatus && (
-              <div className="text-[11px] p-2 rounded bg-black/40 border border-white/10 flex flex-col gap-1.5 mt-1">
-                <span className={updateAvailable ? "text-emerald-400 font-medium" : "text-zinc-400"}>
-                  {updateStatus}
-                </span>
-                {updateUrl && (
-                  <a
-                    href={updateUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn btn-primary py-1 px-2 text-[10px] text-center flex items-center justify-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded"
-                  >
-                    <Download size={11} /> Scarica Aggiornamento
-                  </a>
-                )}
-              </div>
-            )}
           </div>
         </aside>
 
-        {/* Middle Column: Applications list */}
+        {/* COLONNA 2: LISTA APPLICAZIONI DEL GRUPPO */}
         {!isAuditActive && (
-          <section className="w-80 border-r border-white/5 flex flex-col p-4 shrink-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                {searchTerm ? t.searchResults : t.appsTitle}
-              </h3>
+          <section className="w-64 bg-[#0d0e15] border-r border-white/[0.07] flex flex-col shrink-0 select-none">
+            {/* Header Colonna Applicazioni */}
+            <div className="flex items-center justify-between px-4 pt-4 pb-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <Folder size={13} className="text-purple-400 shrink-0" />
+                <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider truncate">
+                  {searchTerm ? (lang === 'it' ? 'Risultati' : 'Search') : (selectedGroup?.name || t.appsTitle)}
+                </h3>
+              </div>
               {!searchTerm && selectedGroupId && (
                 <button
                   onClick={() => {
@@ -2323,399 +2377,569 @@ export default function App() {
                     setAppTotpSecretInput('');
                     setShowAppModal(true);
                   }}
-                  className="btn-icon"
+                  className="w-[22px] h-[22px] rounded-md bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 flex items-center justify-center transition-colors cursor-pointer"
                   title={t.newApp}
                 >
-                  <Plus size={16} />
+                  <Plus size={13} strokeWidth={2.5} />
                 </button>
               )}
             </div>
 
-            <div className="flex flex-col gap-2">
+            {/* Lista Applicazioni */}
+            <div className="flex-1 overflow-y-auto px-3 py-1 space-y-1.5 custom-scrollbar">
               {searchTerm ? (
                 searchedApps && searchedApps.length > 0 ? (
-                  searchedApps.map(({ app, groupName, groupId }) => (
-                    <div
-                      key={app.id}
-                      onClick={() => {
-                        setSelectedGroupId(groupId);
-                        setSelectedAppId(app.id);
-                      }}
-                      className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                        selectedAppId === app.id
-                          ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300'
-                          : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:bg-white/5'
-                      }`}
-                    >
-                      <div className="font-semibold text-zinc-200 truncate">{app.name}</div>
-                      <div className="text-xs text-zinc-500 mt-1 flex items-center justify-between">
-                        <span className="truncate">{app.credentials[0]?.username}</span>
-                        <span className="px-1.5 py-0.2 bg-white/5 rounded border border-white/10 text-[10px]">
-                          {groupName}
+                  searchedApps.map(({ app, groupName, groupId }) => {
+                    const isSelected = selectedAppId === app.id;
+                    const initial = (app.name || '?').charAt(0).toUpperCase();
+                    return (
+                      <div
+                        key={app.id}
+                        onClick={() => {
+                          setSelectedGroupId(groupId);
+                          setSelectedAppId(app.id);
+                        }}
+                        className={`group relative p-2.5 rounded-xl cursor-pointer transition-all border flex items-center gap-2.5 ${
+                          isSelected
+                            ? 'bg-blue-500/15 border-blue-500/40 text-white shadow-sm'
+                            : 'bg-white/[0.02] border-transparent hover:bg-white/[0.05] text-zinc-300'
+                        }`}
+                      >
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 text-white shadow-sm ${
+                            isSelected
+                              ? 'bg-gradient-to-br from-blue-600 to-purple-600'
+                              : 'bg-white/10 border border-white/10'
+                          }`}
+                        >
+                          {initial}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-white truncate">{app.name}</div>
+                          <div className="text-[11px] text-zinc-400 truncate flex items-center gap-1">
+                            <span>{groupName}</span>
+                            {app.url && <span>• {app.url.replace(/^https?:\/\//, '')}</span>}
+                          </div>
+                        </div>
+                        <span
+                          className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                            isSelected ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5 text-zinc-400'
+                          }`}
+                        >
+                          {app.credentials?.length || 0}
                         </span>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
-                  <div className="text-sm text-zinc-500 text-center mt-4">{t.noResults}</div>
+                  <div className="text-sm text-zinc-500 text-center mt-8">{t.noResults}</div>
                 )
-              ) : (
-                selectedGroup ? (
-                  selectedGroup.applications.length > 0 ? (
-                    selectedGroup.applications.map((app) => (
+              ) : selectedGroup ? (
+                selectedGroup.applications.length > 0 ? (
+                  selectedGroup.applications.map((app) => {
+                    const isSelected = selectedAppId === app.id;
+                    const initial = (app.name || '?').charAt(0).toUpperCase();
+                    const displaySub = app.url
+                      ? app.url.replace(/^https?:\/\//, '')
+                      : app.credentials[0]?.username || (lang === 'it' ? 'Nessun account' : 'No account');
+                    return (
                       <div
                         key={app.id}
                         onClick={() => setSelectedAppId(app.id)}
-                        className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                          selectedAppId === app.id
-                            ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300'
-                            : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:bg-white/5'
+                        className={`group relative p-2.5 rounded-xl cursor-pointer transition-all border flex items-center gap-2.5 ${
+                          isSelected
+                            ? 'bg-blue-500/15 border-blue-500/40 text-white shadow-sm'
+                            : 'bg-white/[0.02] border-transparent hover:bg-white/[0.05] text-zinc-300'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-zinc-200 truncate">{app.name}</span>
-                          <div className="flex items-center gap-1 opacity-0 hover:opacity-100">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingAppId(app.id);
-                                setAppNameInput(app.name);
-                                setAppUrlInput(app.url || '');
-                                setShowAppModal(true);
-                              }}
-                              className="btn-icon p-1 hover:text-white"
-                            >
-                              <Edit2 size={12} />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteApp(app.id);
-                              }}
-                              className="btn-icon p-1 hover:text-red-400"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 text-white shadow-sm ${
+                            isSelected
+                              ? 'bg-gradient-to-br from-blue-600 to-purple-600'
+                              : 'bg-white/10 border border-white/10'
+                          }`}
+                        >
+                          {initial}
                         </div>
-                        <div className="text-xs text-zinc-500 mt-1 truncate">
-                          {app.credentials[0]?.username || (lang === 'it' ? 'Nessun account' : 'No account')}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-white truncate">{app.name}</div>
+                          <div className="text-[11px] text-zinc-400 truncate">{displaySub}</div>
                         </div>
+
+                        {/* Modifica/Elimina al passaggio del mouse */}
+                        <div className="hidden group-hover:flex items-center gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingAppId(app.id);
+                              setAppNameInput(app.name);
+                              setAppUrlInput(app.url || '');
+                              setShowAppModal(true);
+                            }}
+                            className="p-1 text-zinc-400 hover:text-white rounded transition-colors"
+                            title={t.editApp}
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteApp(app.id);
+                            }}
+                            className="p-1 text-zinc-400 hover:text-red-400 rounded transition-colors"
+                            title={t.deleteApp}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+
+                        <span
+                          className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                            isSelected ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5 text-zinc-400'
+                          }`}
+                        >
+                          {app.credentials?.length || 0}
+                        </span>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-sm text-zinc-500 text-center mt-4">{t.noApps}</div>
-                  )
+                    );
+                  })
                 ) : (
-                  <div className="text-sm text-zinc-500 text-center mt-4">{t.selectGroup}</div>
+                  <div className="flex flex-col items-center justify-center text-center p-6 mt-12 gap-3">
+                    <FolderPlus size={32} className="text-zinc-600" />
+                    <div className="text-sm font-semibold text-zinc-300">
+                      {lang === 'it' ? 'Nessuna applicazione' : 'No applications'}
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      {lang === 'it'
+                        ? `Aggiungi un sito o servizio dentro "${selectedGroup.name}".`
+                        : `Add an app or site to "${selectedGroup.name}".`}
+                    </p>
+                  </div>
                 )
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center p-6 mt-12 gap-3">
+                  <Folder size={32} className="text-zinc-600" />
+                  <div className="text-sm font-semibold text-zinc-300">
+                    {lang === 'it' ? 'Seleziona o crea un Gruppo' : 'Select or create a Group'}
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    {lang === 'it'
+                      ? 'Crea un gruppo a sinistra per iniziare.'
+                      : 'Create a group on the left to start.'}
+                  </p>
+                </div>
               )}
             </div>
+
+            {/* Footer Colonna Applicazioni */}
+            {selectedGroupId && !searchTerm && (
+              <div className="p-3 border-t border-white/[0.06]">
+                <button
+                  onClick={() => {
+                    setEditingAppId(null);
+                    setAppNameInput('');
+                    setAppUrlInput('');
+                    setAppUsernameInput('');
+                    setAppPasswordInput('');
+                    setAppNotesInput('');
+                    setAppTotpSecretInput('');
+                    setShowAppModal(true);
+                  }}
+                  className="w-full py-2 px-3 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                >
+                  <Plus size={14} className="text-blue-400" />
+                  <span>{lang === 'it' ? 'Aggiungi Applicazione' : 'Add Application'}</span>
+                </button>
+              </div>
+            )}
           </section>
         )}
 
-        {/* Right Column: App details or Password Generator */}
+        {/* COLONNA 3: DETTAGLI APPLICAZIONE / AUDIT / STATO SBLOCCATO */}
         {isAuditActive ? (
-          <main className="flex-1 p-6 overflow-y-auto bg-black/5 flex flex-col items-center">
+          <main className="flex-1 p-6 overflow-y-auto bg-[#0a0a0f] flex flex-col items-center">
             {renderSecurityAuditDashboard()}
           </main>
         ) : (
-          <main className="flex-1 p-6 overflow-y-auto flex flex-col bg-black/5">
+          <main className="flex-1 flex flex-col bg-[#0a0a0f] overflow-hidden">
             {selectedApp ? (
-            <div className="max-w-2xl w-full flex flex-col gap-6 animate-fade-in">
-              <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">{selectedApp.name}</h2>
-                  {selectedApp.url && (
-                    <a
-                      href={selectedApp.url.startsWith('http') ? selectedApp.url : `https://${selectedApp.url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1 mt-1 inline-flex"
-                    >
-                      {selectedApp.url} <ExternalLink size={12} />
-                    </a>
-                  )}
-                </div>
-                <button
-                  onClick={() => {
-                    setEditingCredId(null);
-                    setCredUsernameInput('');
-                    setCredPasswordInput('');
-                    setCredNotesInput('');
-                    setCredTotpSecretInput('');
-                    setShowCredModal(true);
-                  }}
-                  className="btn btn-secondary py-2"
-                >
-                  <Plus size={15} /> {t.addAccount}
-                </button>
-              </div>
-
-              {/* List of accounts / credentials */}
-              <div className="flex flex-col gap-4">
-                {selectedApp.credentials.map((cred, index) => (
-                  <div key={cred.id} className="glass-panel p-5 flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
-                        {t.accountNum} #{index + 1}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => {
-                            setEditingCredId(cred.id);
-                            setCredUsernameInput(cred.username);
-                            setCredPasswordInput(cred.passwordCiphertext);
-                            setCredNotesInput(cred.notes || '');
-                            setCredTotpSecretInput(cred.totpSecret || '');
-                            setShowCredModal(true);
-                          }}
-                          className="btn-icon p-1"
-                          title={t.editAccount}
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                        {selectedApp.credentials.length > 1 && (
-                          <button
-                            onClick={() => handleDeleteCred(cred.id)}
-                            className="btn-icon p-1 hover:text-red-400"
-                            title={t.deleteAccount}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        )}
-                      </div>
+              <div className="flex flex-col h-full overflow-hidden">
+                {/* Header Applicazione Selezionata */}
+                <div className="border-b border-white/[0.07] px-6 py-4 bg-[#0e0e16]/80 backdrop-blur flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-4">
+                    <div className="w-[48px] h-[48px] rounded-2xl bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-white/15 flex items-center justify-center font-bold text-2xl text-white shadow-lg">
+                      {(selectedApp.name || '?').charAt(0).toUpperCase()}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Username */}
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs text-zinc-500 font-semibold uppercase">{t.username}</label>
-                        <div className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/5">
-                          <span className="text-zinc-200 select-all font-medium">{cred.username}</span>
-                          <button
-                            onClick={() => copyToClipboard(cred.username, t.username)}
-                            className="btn-icon p-1"
-                            title={lang === 'it' ? "Copia Username" : "Copy Username"}
-                          >
-                            <Copy size={14} />
-                          </button>
+                    <div>
+                      <h2 className="text-xl font-bold text-white tracking-tight">{selectedApp.name}</h2>
+                      {selectedApp.url ? (
+                        <a
+                          href={selectedApp.url.startsWith('http') ? selectedApp.url : `https://${selectedApp.url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1.5 mt-0.5 inline-flex"
+                        >
+                          <Globe size={11} />
+                          <span>{selectedApp.url}</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      ) : (
+                        <div className="text-xs text-zinc-400 mt-0.5">
+                          {selectedApp.credentials.length}{' '}
+                          {lang === 'it'
+                            ? `credenzial${selectedApp.credentials.length === 1 ? 'e' : 'i'} protett${selectedApp.credentials.length === 1 ? 'a' : 'e'}`
+                            : `credential${selectedApp.credentials.length === 1 ? '' : 's'}`}
                         </div>
-                      </div>
+                      )}
+                    </div>
+                  </div>
 
-                      {/* Password */}
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs text-zinc-500 font-semibold uppercase">{t.passwordLabel}</label>
-                        <div className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/5">
-                          <span className="text-zinc-200 font-mono tracking-wide">
-                            {visiblePasswords[cred.id] ? cred.passwordCiphertext : '••••••••••••'}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => togglePasswordVisibility(cred.id)}
-                              className="btn-icon p-1"
-                              title={visiblePasswords[cred.id] ? (lang === 'it' ? 'Nascondi Password' : 'Hide Password') : (lang === 'it' ? 'Mostra Password' : 'Show Password')}
-                            >
-                              {visiblePasswords[cred.id] ? <EyeOff size={14} /> : <Eye size={14} />}
-                            </button>
+                  <button
+                    onClick={() => {
+                      setEditingCredId(null);
+                      setCredUsernameInput('');
+                      setCredPasswordInput('');
+                      setCredNotesInput('');
+                      setCredTotpSecretInput('');
+                      setShowCredModal(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:brightness-110 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/25 transition-all cursor-pointer"
+                  >
+                    <Plus size={14} strokeWidth={2.5} />
+                    <span>{lang === 'it' ? 'Nuova Credenziale' : 'Add Credential'}</span>
+                  </button>
+                </div>
+
+                {/* Lista Credenziali dell'applicazione */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
+                  {selectedApp.credentials.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center py-16 gap-3">
+                      <div className="w-16 h-16 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                        <Key size={28} />
+                      </div>
+                      <h3 className="text-base font-bold text-white">
+                        {lang === 'it' ? 'Nessuna credenziale salvata' : 'No credentials saved'}
+                      </h3>
+                      <p className="text-xs text-zinc-400 max-w-xs">
+                        {lang === 'it'
+                          ? `Aggiungi il primo account o password per ${selectedApp.name}.`
+                          : `Add the first account or password for ${selectedApp.name}.`}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setEditingCredId(null);
+                          setCredUsernameInput('');
+                          setCredPasswordInput('');
+                          setCredNotesInput('');
+                          setCredTotpSecretInput('');
+                          setShowCredModal(true);
+                        }}
+                        className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
+                      >
+                        <Plus size={14} />
+                        <span>{lang === 'it' ? 'Aggiungi Credenziale' : 'Add Credential'}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    selectedApp.credentials.map((cred, index) => (
+                      <div
+                        key={cred.id}
+                        className="bg-[#11121d] border border-white/[0.08] hover:border-white/15 rounded-xl p-4 flex flex-col gap-3 transition-all shadow-md"
+                      >
+                        {/* Riga Superiore della Card */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/25 flex items-center justify-center text-purple-400 shrink-0">
+                              <Key size={18} />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-sm text-white truncate">
+                                {cred.username || `${t.accountNum} #${index + 1}`}
+                              </div>
+                              <div className="text-xs text-zinc-400 flex items-center gap-2 truncate">
+                                {cred.username && (
+                                  <span className="flex items-center gap-1">
+                                    <User size={11} className="text-zinc-500" />
+                                    <span className="truncate">{cred.username}</span>
+                                  </span>
+                                )}
+                                {selectedApp.url && (
+                                  <>
+                                    <span className="text-zinc-600">•</span>
+                                    <span className="text-blue-400 truncate">{selectedApp.url.replace(/^https?:\/\//, '')}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Azioni Rapide a Destra */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {/* Pillola Password */}
+                            <div className="flex items-center bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 gap-2">
+                              <span className="font-mono text-xs text-zinc-200 tracking-wider">
+                                {visiblePasswords[cred.id] ? cred.passwordCiphertext : '••••••••••••'}
+                              </span>
+                              <button
+                                onClick={() => togglePasswordVisibility(cred.id)}
+                                className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                title={visiblePasswords[cred.id] ? 'Nascondi' : 'Mostra'}
+                              >
+                                {visiblePasswords[cred.id] ? <EyeOff size={13} /> : <Eye size={13} />}
+                              </button>
+                            </div>
+
+                            {/* Tasto Copia Password */}
                             <button
                               onClick={() => copyToClipboard(cred.passwordCiphertext, t.passwordLabel)}
-                              className="btn-icon p-1"
-                              title={lang === 'it' ? "Copia Password" : "Copy Password"}
+                              className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-zinc-300 hover:text-emerald-400 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                              title="Copia Password"
                             >
-                              <Copy size={14} />
+                              <Copy size={12} />
+                              <span>Password</span>
+                            </button>
+
+                            {/* Tasto Copia Username */}
+                            {cred.username && (
+                              <button
+                                onClick={() => copyToClipboard(cred.username, t.username)}
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                                title="Copia Username"
+                              >
+                                <User size={13} />
+                              </button>
+                            )}
+
+                            {/* Tasto Modifica */}
+                            <button
+                              onClick={() => {
+                                setEditingCredId(cred.id);
+                                setCredUsernameInput(cred.username);
+                                setCredPasswordInput(cred.passwordCiphertext);
+                                setCredNotesInput(cred.notes || '');
+                                setCredTotpSecretInput(cred.totpSecret || '');
+                                setShowCredModal(true);
+                              }}
+                              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                              title={t.editAccount}
+                            >
+                              <Edit2 size={13} />
+                            </button>
+
+                            {/* Tasto Elimina */}
+                            <button
+                              onClick={() => handleDeleteCred(cred.id)}
+                              className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-white/10 transition-colors cursor-pointer"
+                              title={t.deleteAccount}
+                            >
+                              <Trash2 size={13} />
                             </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* TOTP 2FA */}
-                    {cred.totpSecret && (
-                      <div className="flex flex-col gap-1 mt-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs text-zinc-500 font-semibold uppercase">{t.totpLabel}</label>
-                          <span className="text-[10px] text-zinc-400 font-mono">
-                            {t.expiresIn} {totpSecondsRemaining}{t.seconds}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/5">
-                          <span className="text-indigo-300 font-mono tracking-widest text-lg font-bold">
-                            {totpCodes[cred.id] ? (
-                              `${totpCodes[cred.id].slice(0, 3)} ${totpCodes[cred.id].slice(3)}`
-                            ) : (
-                              '------'
-                            )}
-                          </span>
-                          <div className="flex items-center gap-1">
+                        {/* Blocco 2FA TOTP se presente */}
+                        {cred.totpSecret && (
+                          <div className="bg-purple-950/20 border border-purple-500/20 rounded-lg px-3 py-2 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-purple-400">2FA:</span>
+                              <span className="font-mono text-purple-300 font-bold tracking-widest text-sm">
+                                {totpCodes[cred.id]
+                                  ? `${totpCodes[cred.id].slice(0, 3)} ${totpCodes[cred.id].slice(3)}`
+                                  : '------'}
+                              </span>
+                              <span
+                                className={`text-[10px] ${
+                                  totpSecondsRemaining <= 5 ? 'text-red-400' : 'text-zinc-500'
+                                }`}
+                              >
+                                ({totpSecondsRemaining}s)
+                              </span>
+                            </div>
                             <button
                               onClick={() => copyToClipboard(totpCodes[cred.id] || '', t.totpLabel)}
-                              className="btn-icon p-1"
-                              title={lang === 'it' ? "Copia Codice OTP" : "Copy OTP Code"}
+                              className="px-2 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             >
-                              <Copy size={14} />
+                              <Copy size={11} />
+                              <span>Copia</span>
                             </button>
                           </div>
-                        </div>
-                      </div>
-                    )}
+                        )}
 
-                    {/* Password History */}
-                    {cred.passwordHistory && cred.passwordHistory.length > 0 && (
-                      <div className="flex flex-col gap-1 mt-3">
-                        <details className="group/hist bg-black/20 rounded-lg border border-white/5 overflow-hidden">
-                          <summary className="flex items-center justify-between p-3 text-xs text-zinc-400 font-semibold uppercase cursor-pointer hover:bg-white/5 select-none transition-colors">
-                            <span>{t.passwordHistory} ({cred.passwordHistory.length})</span>
-                            <span className="text-zinc-500 group-open/hist:rotate-180 transition-transform">▼</span>
-                          </summary>
-                          <div className="p-3 border-t border-white/5 flex flex-col gap-2 max-h-40 overflow-y-auto">
-                            {cred.passwordHistory.map((hist, idx) => (
-                              <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-white/5 last:border-0">
-                                <div className="flex flex-col min-w-0 mr-2">
-                                  <span className="font-mono text-zinc-300 truncate">
-                                    {visiblePasswords[`hist_${cred.id}_${idx}`] ? hist.passwordValue : '••••••••••••'}
-                                  </span>
-                                  <span className="text-[9px] text-zinc-500 mt-0.5">
-                                    {new Date(hist.updatedAt).toLocaleString(lang === 'it' ? 'it-IT' : 'en-US')}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <button
-                                    onClick={() => togglePasswordVisibility(`hist_${cred.id}_${idx}`)}
-                                    className="btn-icon p-1"
-                                    type="button"
-                                    title={visiblePasswords[`hist_${cred.id}_${idx}`] ? (lang === 'it' ? 'Nascondi' : 'Hide') : (lang === 'it' ? 'Mostra' : 'Show')}
-                                  >
-                                    {visiblePasswords[`hist_${cred.id}_${idx}`] ? <EyeOff size={12} /> : <Eye size={12} />}
-                                  </button>
-                                  <button
-                                    onClick={() => copyToClipboard(hist.passwordValue, t.passwordLabel)}
-                                    className="btn-icon p-1"
-                                    type="button"
-                                    title={lang === 'it' ? "Copia" : "Copy"}
-                                  >
-                                    <Copy size={12} />
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      if (confirm(lang === 'it' ? "Ripristinare questa vecchia password?" : "Restore this old password?")) {
-                                        handleRestorePassword(cred.id, hist.passwordValue);
-                                      }
-                                    }}
-                                    className="btn-icon p-1 hover:text-indigo-400"
-                                    type="button"
-                                    title={t.restore}
-                                  >
-                                    <RefreshCw size={12} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
+                        {/* Note se presenti */}
+                        {cred.notes && (
+                          <div className="bg-black/20 rounded-lg p-2.5 text-xs text-zinc-400 border border-white/5 whitespace-pre-wrap">
+                            {cred.notes}
                           </div>
-                        </details>
+                        )}
+
+                        {/* Cronologia Password se presente */}
+                        {cred.passwordHistory && cred.passwordHistory.length > 0 && (
+                          <details className="text-xs text-zinc-500">
+                            <summary className="cursor-pointer hover:text-zinc-400 select-none">
+                              {t.passwordHistory} ({cred.passwordHistory.length})
+                            </summary>
+                            <div className="mt-2 space-y-1 pl-2 border-l border-white/10">
+                              {cred.passwordHistory.map((hist, idx) => (
+                                <div key={idx} className="flex items-center justify-between py-1">
+                                  <span className="font-mono text-zinc-400">
+                                    {visiblePasswords[`hist_${cred.id}_${idx}`]
+                                      ? hist.passwordValue
+                                      : '••••••••••••'}
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-zinc-600 mr-2">
+                                      {new Date(hist.updatedAt).toLocaleDateString()}
+                                    </span>
+                                    <button
+                                      onClick={() => togglePasswordVisibility(`hist_${cred.id}_${idx}`)}
+                                      className="text-zinc-400 hover:text-white p-1 cursor-pointer"
+                                    >
+                                      {visiblePasswords[`hist_${cred.id}_${idx}`] ? (
+                                        <EyeOff size={11} />
+                                      ) : (
+                                        <Eye size={11} />
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => copyToClipboard(hist.passwordValue, t.passwordLabel)}
+                                      className="text-zinc-400 hover:text-white p-1 cursor-pointer"
+                                    >
+                                      <Copy size={11} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        )}
                       </div>
-                    )}
-
-                    {/* Notes */}
-                    {cred.notes && (
-                      <div className="flex flex-col gap-1 mt-2">
-                        <label className="text-xs text-zinc-500 font-semibold uppercase">{t.notes}</label>
-                        <div className="bg-black/20 p-3 rounded-lg border border-white/5 text-sm text-zinc-300 whitespace-pre-wrap">
-                          {cred.notes}
-                        </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* STATO VUOTO ELEGANTE AL CENTRO (UGUALE A MACOS SCREENSHOT) */
+              <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0f]">
+                <div className="bg-white/[0.03] border border-white/[0.07] rounded-3xl p-10 max-w-md w-full text-center flex flex-col items-center gap-6 shadow-2xl backdrop-blur-xl">
+                  {/* Icona Vault LocKey */}
+                  <div className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl blur-lg opacity-40"></div>
+                    <div className="relative w-[84px] h-[84px] rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-0.5 shadow-2xl flex items-center justify-center">
+                      <div className="w-full h-full bg-[#0e0e16] rounded-2xl flex items-center justify-center">
+                        <ShieldCheck
+                          size={44}
+                          className="text-purple-400 drop-shadow-[0_0_12px_rgba(168,85,247,0.5)]"
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            // Default Screen: Password Generator
-            <div className="max-w-xl w-full mx-auto flex flex-col gap-6 items-center justify-center h-full text-center">
-              <div className="flex flex-col items-center gap-2 mb-4">
-                <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-400 mb-2">
-                  <Shield size={40} />
-                </div>
-                <h2 className="text-xl font-bold text-white">{t.genTitle}</h2>
-                <p className="text-sm text-zinc-500">
-                  {t.genSubtitle}
-                </p>
-              </div>
 
-              {/* Generator Panel */}
-              <div className="glass-panel w-full p-6 flex flex-col gap-5 text-left">
-                <div className="flex items-center justify-between bg-black/45 p-4 rounded-xl border border-white/10">
-                  <span className="font-mono text-lg text-indigo-300 break-all select-all font-semibold">
-                    {generatedPassword}
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() =>
-                        setGeneratedPassword(
-                          cryptoHelper.generateSecurePassword(genLength, genSymbols, genNumbers)
-                        )
-                      }
-                      className="btn-icon p-2"
-                      title={t.genRegen}
-                    >
-                      <RefreshCw size={16} />
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(generatedPassword, t.genTitle)}
-                      className="btn btn-primary p-2"
-                      title={t.genCopy}
-                    >
-                      <Copy size={16} />
-                    </button>
+                  {/* Testo Hero */}
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-bold text-white tracking-tight">
+                      Il tuo Vault LocKey è Sbloccato
+                    </h2>
+                    <p className="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
+                      Seleziona un'applicazione a sinistra o creane una nuova per gestire le tue password.
+                    </p>
+                  </div>
+
+                  {/* Badge di Sicurezza Ufficiali */}
+                  <div className="flex items-center gap-2.5 flex-wrap justify-center">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/12 border border-purple-500/25 text-purple-300 text-xs font-semibold">
+                      <Lock size={12} className="text-purple-400" />
+                      <span>AES-256-GCM</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/12 border border-emerald-500/25 text-emerald-300 text-xs font-semibold">
+                      <WifiOff size={12} className="text-emerald-400" />
+                      <span>Zero-Network</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/12 border border-blue-500/25 text-blue-300 text-xs font-semibold">
+                      <ShieldCheck size={12} className="text-blue-400" />
+                      <span>Sicurezza Locale</span>
+                    </div>
                   </div>
                 </div>
-                {renderPasswordStrength(generatedPassword)}
-
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-zinc-300">{t.genLength}</span>
-                    <span className="font-bold text-indigo-400">{genLength}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={8}
-                    max={64}
-                    value={genLength}
-                    onChange={(e) => setGenLength(parseInt(e.target.value))}
-                    className="w-full accent-indigo-500 bg-zinc-800"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-3 cursor-pointer text-sm text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={genNumbers}
-                      onChange={(e) => setGenNumbers(e.target.checked)}
-                      className="w-4 h-4 accent-indigo-500"
-                    />
-                    <span>{t.genNumbers}</span>
-                  </label>
-
-                  <label className="flex items-center gap-3 cursor-pointer text-sm text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={genSymbols}
-                      onChange={(e) => setGenSymbols(e.target.checked)}
-                      className="w-4 h-4 accent-indigo-500"
-                    />
-                    <span>{t.genSymbols}</span>
-                  </label>
-                </div>
               </div>
-            </div>
-          )}
-        </main>
-      )}
+            )}
+          </main>
+        )}
       </div>
 
       {/* --------------------------------------------- */}
       {/* MODALS SECTION */}
+
+      {/* About Modal */}
+      {showAboutModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-[#11121c] border border-white/10 rounded-2xl max-w-sm w-full p-6 text-center flex flex-col items-center gap-4 shadow-2xl animate-fade-in relative">
+            <button
+              onClick={() => setShowAboutModal(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white p-1 rounded-lg cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-0.5 shadow-lg flex items-center justify-center">
+              <div className="w-full h-full bg-[#0e0e16] rounded-2xl flex items-center justify-center">
+                <ShieldCheck size={32} className="text-purple-400" />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-white">LocKey Desktop</h3>
+              <p className="text-xs text-purple-400 font-semibold mt-0.5">Versione v1.0.5</p>
+              <p className="text-xs text-zinc-400 mt-2">
+                Gestore di password locale, ultra-sicuro e 100% offline cifrato in AES-256-GCM.
+              </p>
+            </div>
+
+            <div className="w-full border-t border-white/10 pt-4 flex flex-col gap-2">
+              <button
+                onClick={checkForUpdates}
+                disabled={isCheckingUpdate}
+                className="w-full py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <RefreshCw size={13} className={isCheckingUpdate ? 'animate-spin text-blue-400' : 'text-blue-400'} />
+                <span>{isCheckingUpdate ? 'Verifica in corso...' : 'Verifica disponibilità aggiornamenti'}</span>
+              </button>
+
+              {updateStatus && (
+                <div className="text-[11px] text-zinc-300 bg-black/30 rounded-lg p-2 border border-white/5">
+                  {updateStatus}
+                </div>
+              )}
+
+              {updateAvailable && updateUrl && (
+                <a
+                  href={updateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30"
+                >
+                  <ExternalLink size={13} />
+                  <span>Scarica Aggiornamento</span>
+                </a>
+              )}
+            </div>
+
+            <div className="pt-2 text-[11px] text-zinc-500">
+              Sviluppato da{' '}
+              <a
+                href="https://www.biragodev.it"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-400 hover:underline font-semibold"
+              >
+                BiragoDev
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --------------------------------------------- */}
 
       {/* 1. Group Modal */}
