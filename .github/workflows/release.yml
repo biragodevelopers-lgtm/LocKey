@@ -96,17 +96,4 @@ jobs:
           draft: false
           prerelease: false
           files: ./release-assets/*
-          body: |
-            ## 🔒 LocKey - Zero-Knowledge Local Password Manager
-            Sviluppato e distribuito gratuitamente da **[BiragoDev](https://www.biragodev.it)**.
-
-            ### 📦 Download Applicazioni:
-            - 🍏 **macOS (Universal Apple Silicon & Intel)**: Scarica `LocKey.dmg`
-            - 💻 **Windows 10 / 11 (64-bit)**: Scarica `LocKey Setup ... .exe`
-
-            ### 🛡️ Caratteristiche Principali:
-            - **100% Offline**: Nessuna connessione alla rete, nessuna richiesta verso server esterni.
-            - **Sicurezza Hardware**: Supporto Touch ID / Face ID e Apple Keychain / Secure Enclave su Mac.
-            - **Crittografia**: AES-256-GCM con derivazione PBKDF2 (100.000 iterazioni SHA-256).
-            - **Zero Pubblicità & Zero Tracciamento**: Software gratuito e trasparente.
-            - **Termini & Privacy**: Consulta il file `TERMINI_E_PRIVACY.md` incluso nel repository.
+          body_path: RELEASE_NOTES.md
