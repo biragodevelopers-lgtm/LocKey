@@ -2,6 +2,7 @@
   "name": "lockey-ui",
   "version": "1.0.6",
   "description": "LocKey - Local Offline Password Manager UI by BiragoDev (www.biragodev.it)",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

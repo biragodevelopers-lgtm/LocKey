@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Licenza-Gratuita%20Freeware-blue?style=for-the-badge" alt="Licenza" />
+  <img src="https://img.shields.io/badge/Licenza-MIT%20Open%20Source-blue?style=for-the-badge" alt="Licenza MIT" />
   <img src="https://img.shields.io/badge/Privacy-100%25%20Offline%20Zero--Network-success?style=for-the-badge" alt="Privacy" />
   <img src="https://img.shields.io/badge/Piattaforme-macOS%20%7C%20Windows-purple?style=for-the-badge" alt="Piattaforme" />
   <img src="https://img.shields.io/badge/Crittografia-AES--256--GCM-red?style=for-the-badge" alt="Crittografia" />
@@ -83,8 +83,9 @@ Scarica l'ultima versione stabile dalla sezione **[Releases](https://github.com/
 
 ## ⚖️ Licenza e Termini Legali
 
-LocKey è distribuito come software gratuito (**Freeware**) "COSÌ COM'È" (*AS-IS*) senza scopo di lucro.  
-Consulta il documento completo dei [Termini e Condizioni d'Uso e Privacy Zero-Data](TERMINI_E_PRIVACY.md).
+LocKey è un software **Open Source** distribuito sotto i termini della prestigiosa **[Licenza MIT](LICENSE)**.  
+Puoi utilizzarlo, studiarlo e compilarlo liberamente nel rispetto della licenza.  
+Consulta inoltre il documento dei [Termini e Condizioni d'Uso e Privacy Zero-Data](TERMINI_E_PRIVACY.md).
 
 ---
 
