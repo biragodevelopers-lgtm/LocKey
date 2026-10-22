@@ -34,7 +34,7 @@ import * as syncEngine from './syncEngine';
 const translations = {
   it: {
     appName: "LocKey",
-    nasTag: "NAS Personale",
+    nasTag: "NAS Locale",
     userLabel: "Utente",
     lock: "Blocca",
     logout: "Esci",
@@ -45,7 +45,7 @@ const translations = {
     delete: "Elimina",
     
     // Auth Screen
-    authSubtitle: "Gestore di Password di Famiglia Self-Hosted",
+    authSubtitle: "Gestore di Password Locale e Sicuro",
     username: "Username",
     usernamePlaceholder: "Inserisci il tuo username",
     accountPassword: "Password dell'Account",
@@ -57,6 +57,8 @@ const translations = {
     loginPrompt: "Hai già un account? ",
     loginLink: "Accedi qui",
     authError: "Errore durante l'autenticazione.",
+    syncError: "Errore di sincronizzazione: ",
+    accountCreatedSuccess: "Account creato con successo! Ora puoi accedere.",
     
     // Setup Vault Screen
     setupTitle: "Crea la tua Master Password",
@@ -76,38 +78,89 @@ const translations = {
     masterPasswordLabel: "Inserisci Master Password",
     unlockPlaceholder: "Inserisci la Master Password per decifrare",
     unlockButton: "Sblocca",
+    invalidMasterPassword: "Master Password errata.",
+    
+    // Header & Navigation
+    searchPlaceholder: "Cerca applicazione o account...",
+    updates: "Aggiornamenti",
+    updatesTooltip: "Verifica disponibilità aggiornamenti su GitHub",
+    backup: "Backup",
+    exportEncryptedBackup: "Esporta Backup Cifrato (.lockey)",
+    importEncryptedBackup: "Importa Backup (.lockey)",
+    importCSVFile: "Importa da file CSV",
+    securityAuditMenu: "Audit di Sicurezza Password",
+    infoTooltip: "Informazioni su LocKey & BiragoDev",
+    lockVault: "Blocca Vault",
+    lockVaultTooltip: "Blocca immediatamente il Vault",
+    language: "Lingua",
+    currentLanguageName: "Italiano",
+    switchLanguageTitle: "Cambia lingua in Inglese (Switch to English)",
     
     // Sidebar Groups
     groupsTitle: "Gruppi",
+    yourGroups: "I TUOI GRUPPI",
+    noGroups: "Nessun gruppo",
     createGroup: "Crea Gruppo",
     newGroup: "Nuovo Gruppo",
+    newGroupBtn: "Nuovo Gruppo",
     editGroup: "Modifica Gruppo",
+    renameGroup: "Rinomina Gruppo",
+    deleteGroup: "Elimina Gruppo",
     groupNameLabel: "Nome Gruppo",
     groupNamePlaceholder: "Es. Lavoro, Social...",
     confirmDeleteGroup: "Sei sicuro di voler eliminare questo gruppo e tutte le sue applicazioni?",
+    deleteGroupConfirmMsg: "Sei sicuro di voler eliminare il gruppo \"{name}\" e tutte le relative applicazioni?",
+    defaultGroupName: "Personale",
+    localAes: "AES-256 Locale",
     
     // Middlebar Apps
     appsTitle: "Applicazioni",
+    results: "Risultati",
     searchResults: "Risultati Ricerca",
     noResults: "Nessun risultato trovato",
     noApps: "Nessuna applicazione in questo gruppo",
+    noAccount: "Nessun account",
+    noAppsInGroupDesc: "Aggiungi un sito o servizio dentro",
     selectGroup: "Seleziona o crea un gruppo",
+    selectOrCreateGroupTitle: "Seleziona o crea un Gruppo",
+    selectOrCreateGroupDesc: "Crea un gruppo a sinistra per iniziare.",
     newApp: "Nuova Applicazione",
+    addAppBtn: "Aggiungi Applicazione",
     editApp: "Modifica Applicazione",
     deleteApp: "Elimina Applicazione",
     confirmDeleteApp: "Sei sicuro di voler eliminare questa applicazione?",
+    deleteAppConfirmMsg: "Sei sicuro di voler eliminare l'applicazione \"{name}\" e tutte le sue credenziali?",
     
     // Detail Panel
     addAccount: "Aggiungi Account",
     accountNum: "Account",
     editAccount: "Modifica Account",
     deleteAccount: "Elimina Account",
+    deleteCredential: "Elimina Credenziale",
     notes: "Note",
     notesPlaceholder: "Eventuali note o risposte di sicurezza...",
     passwordLabel: "Password",
     copySuccess: "copiato! Verrà rimosso dagli appunti tra 30 secondi.",
     cantDeleteOnlyCred: "Non puoi eliminare l'unica credenziale di questa applicazione. Elimina l'intera applicazione se necessario.",
     confirmDeleteCred: "Sei sicuro di voler eliminare questa credenziale?",
+    deleteCredConfirmMsg: "Sei sicuro di voler eliminare questa credenziale?",
+    credentialsProtectedPlural: "credenziali protette",
+    credentialsProtectedSingular: "credenziale protetta",
+    newCredentialBtn: "Nuova Credenziale",
+    addCredentialBtn: "Aggiungi Credenziale",
+    noCredentialsInAppTitle: "Nessuna credenziale salvata",
+    noCredentialsInAppDesc: "Aggiungi il primo account o password per",
+    copyPasswordTitle: "Copia Password",
+    copyUsernameTitle: "Copia Username",
+    showPassword: "Mostra",
+    hidePassword: "Nascondi",
+    copyBtn: "Copia",
+    restoreOldPasswordConfirm: "Ripristinare questa vecchia password?",
+    restoreBtn: "Ripristina",
+    vaultUnlockedTitle: "Il tuo Vault LocKey è Sbloccato",
+    vaultUnlockedSubtitle: "Seleziona un'applicazione a sinistra o creane una nuova per gestire le tue password.",
+    zeroNetwork: "Zero-Network",
+    localSecurity: "Sicurezza Locale",
     
     // Password Generator
     genTitle: "Generatore di Password Sicuro",
@@ -117,8 +170,10 @@ const translations = {
     genSymbols: "Includi Simboli (!@#$...)",
     genRegen: "Rigenera",
     genCopy: "Copia",
+    generatePassword: "Genera Password",
+    generate: "Genera",
     
-    // Modals
+    // Modals & Forms
     appNameLabel: "Nome Applicazione *",
     appNamePlaceholder: "Es. Google, Netflix...",
     webUrl: "URL (Sito Web)",
@@ -132,32 +187,78 @@ const translations = {
     totpSecretPlaceholder: "Es. JBSWY3DPEHPK3PXP",
     expiresIn: "Scade in",
     seconds: "s",
+    newAccountFor: "Nuovo Account per ",
+    
+    // Backup & Tools
     importCSV: "Importa CSV",
+    importedGroupDefault: "Importati",
+    csvImportSuccess: "Credenziali importate con successo!",
+    csvImportError: "Errore durante l'importazione: ",
+    exportBackupPrompt: "Inserisci una password per cifrare questo file di backup:",
+    exportBackupSuccess: "Backup esportato con successo!",
+    downloadBackupSuccess: "Backup scaricato con successo!",
+    exportBackupError: "Errore durante l'esportazione: ",
+    importBackupInvalidFormat: "Formato del file di backup non valido.",
+    importBackupPrompt: "Inserisci la password utilizzata per cifrare il backup:",
+    importBackupSuccess: "Backup importato e fuso con successo!",
     enableBiometrics: "Abilita Touch ID",
     disableBiometrics: "Disabilita Touch ID",
+    biometricsDisabledMsg: "Sblocco biometrico disabilitato.",
+    biometricsPromptPass: "Inserisci la tua Master Password per confermare l'abilitazione del Touch ID:",
+    biometricsEnabledMsg: "Touch ID abilitato con successo!",
+    biometricsErrorMsg: "Errore biometrico: ",
+    biometricsAuthFailed: "Autenticazione biometrica rifiutata o fallita.",
+    biometricsNoCreds: "Credenziali locali non trovate. Riabilita Touch ID.",
+    biometricsErrorShort: "Errore Touch ID.",
     toolsSection: "Strumenti & Importazione",
     biometricsUnlock: "Sblocca con Touch ID",
     exportBackup: "Esporta Backup",
     importBackup: "Importa Backup .lockey",
     passwordHistory: "Cronologia Password",
+    
+    // Security Audit
     securityAudit: "Audit Sicurezza",
+    totalPasswords: "Password Totali",
     weakPasswords: "Password Deboli",
     reusedPasswords: "Password Duplicate",
     pwnedPasswords: "Password Compromesse",
     checkCompromise: "Verifica Compromissione",
-    scanLeak: "Avvia Scansione Leak",
+    scanLeak: "Avvia Scansione Violazioni",
     scanning: "Scansione in corso...",
-    pwnedAlert: "ATTENZIONE: Questa password compare nei leak pubblici!",
-    pwnedSafe: "Non trovata nei leak pubblici",
+    pwnedAlert: "ATTENZIONE: Questa password compare in violazioni pubbliche!",
+    pwnedSafe: "Non trovata in violazioni pubbliche",
     entropyLabel: "Entropia",
+    veryWeakEntropy: "Entropia molto debole",
+    sharedPassword: "Password Condivisa",
+    resolve: "Risolvi",
+    change: "Cambia",
+    strengthVeryWeak: "Molto Debole",
+    strengthWeak: "Debole",
+    strengthMedium: "Media",
+    strengthStrong: "Forte",
     restore: "Ripristina",
-    auditIntro: "Questo strumento analizza in locale il tuo database per rilevare password non sicure e controlla la loro compromissione nei leak pubblici tramite l'API di Have I Been Pwned in modalità Zero-Knowledge.",
-    noVulnerabilities: "Grande! Nessuna vulnerabilità trovata nel tuo vault.",
+    auditIntro: "Questo strumento analizza in locale il tuo database per rilevare password vulnerabili o duplicate e controlla la loro sicurezza in modalità Zero-Knowledge.",
+    noVulnerabilities: "Ottimo! Nessuna vulnerabilità trovata nel tuo vault.",
     vulnerabilitiesFound: "Vulnerabilità trovate nel tuo Vault:",
+    
+    // About Modal
+    aboutAppTitle: "LocKey Desktop",
+    aboutVersionPrefix: "Versione",
+    aboutDescription: "Gestore di password locale, ultra-sicuro e 100% offline cifrato in AES-256-GCM.",
+    checkingUpdatesText: "Verifica in corso...",
+    checkUpdatesBtn: "Verifica disponibilità aggiornamenti",
+    downloadUpdateBtn: "Scarica Aggiornamento",
+    developedBy: "Sviluppato da",
+    newVersionAvailable: "Nuova versione disponibile:",
+    appUpToDate: "LocKey è aggiornato all'ultima versione",
+    noInternetOffline: "Nessuna connessione internet disponibile (offline).",
+    
+    // Delete Confirmation
+    deleteConfirmTitle: "Conferma Eliminazione",
   },
   en: {
     appName: "LocKey",
-    nasTag: "Self-Hosted NAS",
+    nasTag: "Local NAS",
     userLabel: "User",
     lock: "Lock",
     logout: "Logout",
@@ -168,7 +269,7 @@ const translations = {
     delete: "Delete",
     
     // Auth Screen
-    authSubtitle: "Self-Hosted Family Password Manager",
+    authSubtitle: "Local & Secure Password Manager",
     username: "Username",
     usernamePlaceholder: "Enter your username",
     accountPassword: "Account Password",
@@ -180,6 +281,8 @@ const translations = {
     loginPrompt: "Already have an account? ",
     loginLink: "Log in here",
     authError: "Authentication error.",
+    syncError: "Sync error: ",
+    accountCreatedSuccess: "Account created successfully! You can now log in.",
     
     // Setup Vault Screen
     setupTitle: "Create your Master Password",
@@ -199,38 +302,89 @@ const translations = {
     masterPasswordLabel: "Enter Master Password",
     unlockPlaceholder: "Enter Master Password to decrypt",
     unlockButton: "Unlock",
+    invalidMasterPassword: "Invalid Master Password.",
+    
+    // Header & Navigation
+    searchPlaceholder: "Search apps or accounts...",
+    updates: "Updates",
+    updatesTooltip: "Check for updates on GitHub",
+    backup: "Backup",
+    exportEncryptedBackup: "Export Encrypted Backup (.lockey)",
+    importEncryptedBackup: "Import .lockey Backup",
+    importCSVFile: "Import from CSV file",
+    securityAuditMenu: "Password Security Audit",
+    infoTooltip: "About LocKey & BiragoDev",
+    lockVault: "Lock Vault",
+    lockVaultTooltip: "Lock Vault immediately",
+    language: "Language",
+    currentLanguageName: "English",
+    switchLanguageTitle: "Switch language to Italian (Passa a Italiano)",
     
     // Sidebar Groups
     groupsTitle: "Groups",
+    yourGroups: "YOUR GROUPS",
+    noGroups: "No groups",
     createGroup: "Create Group",
     newGroup: "New Group",
+    newGroupBtn: "New Group",
     editGroup: "Edit Group",
+    renameGroup: "Rename Group",
+    deleteGroup: "Delete Group",
     groupNameLabel: "Group Name",
     groupNamePlaceholder: "e.g., Work, Social...",
     confirmDeleteGroup: "Are you sure you want to delete this group and all its applications?",
+    deleteGroupConfirmMsg: "Are you sure you want to delete group \"{name}\" and all its applications?",
+    defaultGroupName: "Personal",
+    localAes: "Local AES-256",
     
     // Middlebar Apps
     appsTitle: "Applications",
+    results: "Results",
     searchResults: "Search Results",
     noResults: "No results found",
     noApps: "No applications in this group",
+    noAccount: "No account",
+    noAppsInGroupDesc: "Add an app or site to",
     selectGroup: "Select or create a group",
+    selectOrCreateGroupTitle: "Select or create a Group",
+    selectOrCreateGroupDesc: "Create a group on the left to start.",
     newApp: "New Application",
+    addAppBtn: "Add Application",
     editApp: "Edit Application",
     deleteApp: "Delete Application",
     confirmDeleteApp: "Are you sure you want to delete this application?",
+    deleteAppConfirmMsg: "Are you sure you want to delete application \"{name}\" and all its credentials?",
     
     // Detail Panel
     addAccount: "Add Account",
     accountNum: "Account",
     editAccount: "Edit Account",
     deleteAccount: "Delete Account",
+    deleteCredential: "Delete Credential",
     notes: "Notes",
     notesPlaceholder: "Notes or security answers...",
     passwordLabel: "Password",
     copySuccess: "copied! It will be removed from clipboard in 30 seconds.",
     cantDeleteOnlyCred: "You cannot delete the only credential for this application. Delete the entire application if needed.",
     confirmDeleteCred: "Are you sure you want to delete this credential?",
+    deleteCredConfirmMsg: "Are you sure you want to delete this credential?",
+    credentialsProtectedPlural: "protected credentials",
+    credentialsProtectedSingular: "protected credential",
+    newCredentialBtn: "Add Credential",
+    addCredentialBtn: "Add Credential",
+    noCredentialsInAppTitle: "No credentials saved",
+    noCredentialsInAppDesc: "Add the first account or password for",
+    copyPasswordTitle: "Copy Password",
+    copyUsernameTitle: "Copy Username",
+    showPassword: "Show",
+    hidePassword: "Hide",
+    copyBtn: "Copy",
+    restoreOldPasswordConfirm: "Restore this old password?",
+    restoreBtn: "Restore",
+    vaultUnlockedTitle: "Your LocKey Vault is Unlocked",
+    vaultUnlockedSubtitle: "Select an application on the left or create a new one to manage your passwords.",
+    zeroNetwork: "Zero-Network",
+    localSecurity: "Local Security",
     
     // Password Generator
     genTitle: "Secure Password Generator",
@@ -240,8 +394,10 @@ const translations = {
     genSymbols: "Include Symbols (!@#$...)",
     genRegen: "Regenerate",
     genCopy: "Copy",
+    generatePassword: "Generate Password",
+    generate: "Generate",
     
-    // Modals
+    // Modals & Forms
     appNameLabel: "Application Name *",
     appNamePlaceholder: "e.g., Google, Netflix...",
     webUrl: "URL (Website)",
@@ -255,28 +411,74 @@ const translations = {
     totpSecretPlaceholder: "e.g., JBSWY3DPEHPK3PXP",
     expiresIn: "Expires in",
     seconds: "s",
+    newAccountFor: "New Account for ",
+    
+    // Backup & Tools
     importCSV: "Import CSV",
+    importedGroupDefault: "Imported",
+    csvImportSuccess: "Credentials imported successfully!",
+    csvImportError: "Error during import: ",
+    exportBackupPrompt: "Enter a password to encrypt this backup file:",
+    exportBackupSuccess: "Backup exported successfully!",
+    downloadBackupSuccess: "Backup downloaded successfully!",
+    exportBackupError: "Error during export: ",
+    importBackupInvalidFormat: "Invalid backup file format.",
+    importBackupPrompt: "Enter the password used to encrypt the backup:",
+    importBackupSuccess: "Backup imported and merged successfully!",
     enableBiometrics: "Enable Touch ID",
     disableBiometrics: "Disable Touch ID",
+    biometricsDisabledMsg: "Biometric unlock disabled.",
+    biometricsPromptPass: "Enter your Master Password to confirm enabling Touch ID:",
+    biometricsEnabledMsg: "Touch ID enabled successfully!",
+    biometricsErrorMsg: "Biometric error: ",
+    biometricsAuthFailed: "Biometric authentication rejected or failed.",
+    biometricsNoCreds: "Local credentials not found. Re-enable Touch ID.",
+    biometricsErrorShort: "Touch ID Error.",
     toolsSection: "Tools & Import",
     biometricsUnlock: "Unlock with Touch ID",
     exportBackup: "Export Backup",
     importBackup: "Import .lockey Backup",
     passwordHistory: "Password History",
+    
+    // Security Audit
     securityAudit: "Security Audit",
+    totalPasswords: "Total Passwords",
     weakPasswords: "Weak Passwords",
     reusedPasswords: "Reused Passwords",
     pwnedPasswords: "Compromised Passwords",
     checkCompromise: "Check Compromise",
-    scanLeak: "Start Leak Scan",
+    scanLeak: "Start Breach Scan",
     scanning: "Scanning...",
-    pwnedAlert: "WARNING: This password appears in public leaks!",
-    pwnedSafe: "Not found in public leaks",
+    pwnedAlert: "WARNING: This password appears in public data breaches!",
+    pwnedSafe: "Not found in public breaches",
     entropyLabel: "Entropy",
+    veryWeakEntropy: "Very weak entropy",
+    sharedPassword: "Shared Password",
+    resolve: "Resolve",
+    change: "Change",
+    strengthVeryWeak: "Very Weak",
+    strengthWeak: "Weak",
+    strengthMedium: "Medium",
+    strengthStrong: "Strong",
     restore: "Restore",
-    auditIntro: "This tool analyzes your local database to detect insecure passwords and checks if they have been compromised in public data breaches using the Have I Been Pwned API in a Zero-Knowledge manner.",
+    auditIntro: "This tool analyzes your local database to detect vulnerable or reused passwords and checks their security in a Zero-Knowledge manner.",
     noVulnerabilities: "Great! No vulnerabilities found in your vault.",
     vulnerabilitiesFound: "Vulnerabilities found in your Vault:",
+    
+    // About Modal
+    aboutAppTitle: "LocKey Desktop",
+    aboutVersionPrefix: "Version",
+    aboutDescription: "Local, ultra-secure and 100% offline password manager encrypted with AES-256-GCM.",
+    checkingUpdatesText: "Checking for updates...",
+    checkUpdatesBtn: "Check for updates",
+    downloadUpdateBtn: "Download Update",
+    developedBy: "Developed by",
+    newVersionAvailable: "New version available:",
+    appUpToDate: "LocKey is up to date",
+    noInternetOffline: "No internet connection available (offline).",
+    
+    // Delete Confirmation
+    deleteConfirmTitle: "Confirm Deletion",
   }
 };
 
@@ -645,7 +847,7 @@ export default function App() {
     try {
       if (authMode === 'signup') {
         await api.signUp(usernameInput, passwordInput);
-        setAuthSuccess(lang === 'it' ? 'Account creato con successo! Ora puoi accedere.' : 'Account created successfully! You can now log in.');
+        setAuthSuccess(t.accountCreatedSuccess);
         setAuthMode('login');
         setPasswordInput('');
       } else {
@@ -701,7 +903,7 @@ export default function App() {
         setSelectedGroupId(db.groups[0].id);
       }
     } catch (err: any) {
-      setVaultError(lang === 'it' ? 'Master Password errata.' : 'Invalid Master Password.');
+      setVaultError(t.invalidMasterPassword);
       console.error(err);
     } finally {
       setLoading(false);
@@ -731,7 +933,7 @@ export default function App() {
         groups: [
           {
             id: window.crypto.randomUUID(),
-            name: lang === 'it' ? 'Personale' : 'Personal',
+            name: t.defaultGroupName,
             applications: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -842,7 +1044,7 @@ export default function App() {
       setVaultDb(mergedDb);
       setVaultPayload(payload);
     } catch (err: any) {
-      alert(lang === 'it' ? 'Errore di sincronizzazione: ' + err.message : 'Sync error: ' + err.message);
+      alert(t.syncError + err.message);
     }
   }
 
@@ -949,19 +1151,19 @@ export default function App() {
     let barWidth = '';
 
     if (entropy < 40) {
-      strengthLabel = lang === 'it' ? 'Molto Debole' : 'Very Weak';
+      strengthLabel = t.strengthVeryWeak;
       barColor = 'bg-red-500';
       barWidth = 'w-1/4';
     } else if (entropy < 60) {
-      strengthLabel = lang === 'it' ? 'Debole' : 'Weak';
+      strengthLabel = t.strengthWeak;
       barColor = 'bg-orange-500';
       barWidth = 'w-2/4';
     } else if (entropy < 80) {
-      strengthLabel = lang === 'it' ? 'Media' : 'Medium';
+      strengthLabel = t.strengthMedium;
       barColor = 'bg-yellow-500';
       barWidth = 'w-3/4';
     } else {
-      strengthLabel = lang === 'it' ? 'Forte' : 'Strong';
+      strengthLabel = t.strengthStrong;
       barColor = 'bg-emerald-500';
       barWidth = 'w-full';
     }
@@ -1088,7 +1290,7 @@ export default function App() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="glass-panel p-4 flex flex-col justify-between min-h-[100px]">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-              {lang === 'it' ? "Password Totali" : "Total Passwords"}
+              {t.totalPasswords}
             </span>
             <span className="text-3xl font-extrabold text-white mt-2 font-mono">
               {auditReport.totalCount}
@@ -1158,7 +1360,7 @@ export default function App() {
                       <span className="text-white font-semibold truncate">{appName}</span>
                       <span className="text-xs text-zinc-400 truncate">{cred.username}</span>
                       <span className="text-[10px] text-red-400 font-medium">
-                        {lang === 'it' ? 'Entropia molto debole' : 'Very weak entropy'}: {entropy} bits (L: {cred.passwordCiphertext.length})
+                        {t.veryWeakEntropy}: {entropy} bits (L: {cred.passwordCiphertext.length})
                       </span>
                     </div>
                     <button
@@ -1169,7 +1371,7 @@ export default function App() {
                       }}
                       className="btn btn-secondary py-1 px-3 text-xs shrink-0"
                     >
-                      {lang === 'it' ? 'Risolvi' : 'Resolve'}
+                      {t.resolve}
                     </button>
                   </div>
                 ))}
@@ -1187,7 +1389,7 @@ export default function App() {
                 {auditReport.duplicate.map(({ password, items }, idx) => (
                   <div key={idx} className="glass-panel p-4 flex flex-col gap-2 border-l-2 border-l-orange-500/50">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-zinc-500 font-semibold uppercase">{lang === 'it' ? 'Password Condivisa' : 'Shared Password'}</span>
+                      <span className="text-zinc-500 font-semibold uppercase">{t.sharedPassword}</span>
                       <span className="font-mono text-zinc-300">
                         {visiblePasswords[`audit_dup_${idx}`] ? password : '••••••••••••'}
                       </span>
@@ -1214,7 +1416,7 @@ export default function App() {
                             }}
                             className="btn btn-secondary py-0.5 px-2 text-[10px] shrink-0"
                           >
-                            {lang === 'it' ? 'Cambia' : 'Change'}
+                            {t.change}
                           </button>
                         </div>
                       ))}
@@ -1244,8 +1446,8 @@ export default function App() {
                             <span className="text-xs text-zinc-400 truncate">{c.username}</span>
                             <span className="text-[10px] text-pink-400 font-medium">
                               {lang === 'it' 
-                                ? `Compromessa: Trovata in ${pwned.count.toLocaleString()} leak pubblici!` 
-                                : `Compromised: Found in ${pwned.count.toLocaleString()} public breaches!`}
+                                ? `Compromessa: Trovata in ${pwned.count.toLocaleString()} violazioni pubbliche!` 
+                                : `Compromised: Found in ${pwned.count.toLocaleString()} public data breaches!`}
                             </span>
                           </div>
                           <button
@@ -1256,7 +1458,7 @@ export default function App() {
                             }}
                             className="btn btn-secondary py-1 px-3 text-xs shrink-0"
                           >
-                            {lang === 'it' ? 'Risolvi' : 'Resolve'}
+                            {t.resolve}
                           </button>
                         </div>
                       );
@@ -1345,10 +1547,8 @@ export default function App() {
   function requestDeleteGroup(groupId: string, groupName: string) {
     setDeleteConfirmModal({
       isOpen: true,
-      title: lang === 'it' ? 'Elimina Gruppo' : 'Delete Group',
-      message: lang === 'it'
-        ? `Sei sicuro di voler eliminare il gruppo "${groupName}" e tutte le relative applicazioni?`
-        : `Are you sure you want to delete group "${groupName}" and all its applications?`,
+      title: t.deleteGroup,
+      message: t.deleteGroupConfirmMsg.replace('{name}', groupName),
       onConfirm: () => executeDeleteGroup(groupId),
     });
   }
@@ -1534,7 +1734,7 @@ export default function App() {
   function requestDeleteCred(credId: string) {
     setDeleteConfirmModal({
       isOpen: true,
-      title: lang === 'it' ? 'Elimina Credenziale' : 'Delete Credential',
+      title: t.deleteCredential,
       message: t.confirmDeleteCred,
       onConfirm: () => executeDeleteCred(credId),
     });
@@ -1557,7 +1757,7 @@ export default function App() {
         const text = event.target?.result as string;
         if (!text) return;
 
-        const importedGroups = csvImporter.importFromCSV(text, lang === 'it' ? 'Importati' : 'Imported');
+        const importedGroups = csvImporter.importFromCSV(text, t.importedGroupDefault);
         const updatedDb = { ...vaultDb };
         
         for (const impGroup of importedGroups) {
@@ -1606,9 +1806,9 @@ export default function App() {
         }
 
         await syncVault(updatedDb);
-        alert(lang === 'it' ? 'Credenziali importate con successo!' : 'Credentials imported successfully!');
+        alert(t.csvImportSuccess);
       } catch (err: any) {
-        alert((lang === 'it' ? 'Errore durante l\'importazione: ' : 'Error during import: ') + err.message);
+        alert(t.csvImportError + err.message);
       }
     };
     reader.readAsText(file);
@@ -1617,11 +1817,7 @@ export default function App() {
 
   async function handleExportBackup() {
     if (!vaultDb) return;
-    const backupPassword = prompt(
-      lang === 'it' 
-        ? 'Inserisci una password per cifrare questo file di backup:' 
-        : 'Enter a password to encrypt this backup file:'
-    );
+    const backupPassword = prompt(t.exportBackupPrompt);
     if (!backupPassword) return;
 
     try {
@@ -1646,7 +1842,7 @@ export default function App() {
       if (isElectron) {
         const success = await (window as any).electronAPI.exportBackup(backupJSON);
         if (success) {
-          alert(lang === 'it' ? 'Backup esportato con successo!' : 'Backup exported successfully!');
+          alert(t.exportBackupSuccess);
         }
       } else {
         const blob = new Blob([backupJSON], { type: 'application/json' });
@@ -1658,10 +1854,10 @@ export default function App() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        alert(lang === 'it' ? 'Backup scaricato con successo!' : 'Backup downloaded successfully!');
+        alert(t.downloadBackupSuccess);
       }
     } catch (err: any) {
-      alert((lang === 'it' ? 'Errore durante l\'esportazione: ' : 'Error during export: ') + err.message);
+      alert(t.exportBackupError + err.message);
     }
   }
 
@@ -1689,14 +1885,10 @@ export default function App() {
 
       const backupObj = JSON.parse(fileContent);
       if (!backupObj.salt || !backupObj.encryptedVaultKey || !backupObj.nonce) {
-        throw new Error(lang === 'it' ? 'Formato del file di backup non valido.' : 'Invalid backup file format.');
+        throw new Error(t.importBackupInvalidFormat);
       }
 
-      const backupPassword = prompt(
-        lang === 'it' 
-          ? 'Inserisci la password utilizzata per cifrare il backup:' 
-          : 'Enter the password used to encrypt the backup:'
-      );
+      const backupPassword = prompt(t.importBackupPrompt);
       if (!backupPassword) return;
 
       const saltBytes = cryptoHelper.base64ToArrayBuffer(backupObj.salt);
@@ -1712,9 +1904,9 @@ export default function App() {
       const mergedDb = syncEngine.mergeVaults(vaultDb, remoteDb);
       
       await syncVault(mergedDb);
-      alert(lang === 'it' ? 'Backup importato e fuso con successo!' : 'Backup imported and merged successfully!');
+      alert(t.importBackupSuccess);
     } catch (err: any) {
-      alert((lang === 'it' ? 'Errore durante l\'importazione: ' : 'Error during import: ') + err.message);
+      alert(t.csvImportError + err.message);
     } finally {
       if (e) e.target.value = '';
     }
@@ -1737,15 +1929,15 @@ export default function App() {
 
       if (latestTag && latestTag !== currentVersion) {
         setUpdateAvailable(true);
-        setUpdateStatus(`Nuova versione disponibile: ${latestTag}!`);
+        setUpdateStatus(`${t.newVersionAvailable} ${latestTag}!`);
         setUpdateUrl(data.html_url || 'https://github.com/biragodevelopers-lgtm/LocKey/releases/latest');
       } else {
         setUpdateAvailable(false);
-        setUpdateStatus(`LocKey è aggiornato all'ultima versione (${currentVersion}).`);
+        setUpdateStatus(`${t.appUpToDate} (${currentVersion}).`);
       }
     } catch {
       setUpdateAvailable(false);
-      setUpdateStatus('Nessuna connessione internet disponibile (offline).');
+      setUpdateStatus(t.noInternetOffline);
     } finally {
       setIsCheckingUpdate(false);
     }
@@ -1758,14 +1950,10 @@ export default function App() {
         localStorage.removeItem('lockey_biometric_username');
         await deleteIndexedDB('encrypted_master_password');
         setIsBiometricsEnabled(false);
-        alert(lang === 'it' ? 'Sblocco biometrico disabilitato.' : 'Biometric unlock disabled.');
+        alert(t.biometricsDisabledMsg);
       } else {
         if (!accountUsername) return;
-        const pass = prompt(
-          lang === 'it'
-            ? 'Inserisci la tua Master Password per confermare l\'abilitazione del Touch ID:'
-            : 'Enter your Master Password to confirm enabling Touch ID:'
-        );
+        const pass = prompt(t.biometricsPromptPass);
         if (!pass) return;
 
         if (!vaultPayload) return;
@@ -1774,7 +1962,7 @@ export default function App() {
         try {
           await cryptoHelper.decryptData(vaultPayload.ciphertext, vaultPayload.nonce, key);
         } catch {
-          alert(lang === 'it' ? 'Master Password errata.' : 'Invalid Master Password.');
+          alert(t.invalidMasterPassword);
           return;
         }
 
@@ -1787,11 +1975,11 @@ export default function App() {
         await setIndexedDB('encrypted_master_password', encrypted);
 
         setIsBiometricsEnabled(true);
-        alert(lang === 'it' ? 'Touch ID abilitato con successo!' : 'Touch ID enabled successfully!');
+        alert(t.biometricsEnabledMsg);
       }
     } catch (err: any) {
       console.error(err);
-      alert((lang === 'it' ? 'Errore biometrico: ' : 'Biometric error: ') + err.message);
+      alert(t.biometricsErrorMsg + err.message);
     }
   }
 
@@ -1806,12 +1994,12 @@ export default function App() {
     try {
       const success = await cryptoHelper.authenticateBiometric(credId);
       if (!success) {
-        throw new Error(lang === 'it' ? 'Autenticazione biometrica rifiutata o fallita.' : 'Biometric authentication rejected or failed.');
+        throw new Error(t.biometricsAuthFailed);
       }
 
       const stored = await getIndexedDB('encrypted_master_password');
       if (!stored || !stored.ciphertext || !stored.nonce) {
-        throw new Error(lang === 'it' ? 'Credenziali locali non trovate. Riabilita Touch ID.' : 'Local credentials not found. Re-enable Touch ID.');
+        throw new Error(t.biometricsNoCreds);
       }
 
       const encKey = await cryptoHelper.deriveKey(bUsername, new Uint8Array([1,3,5,7,9,11,13,15]));
@@ -1840,7 +2028,7 @@ export default function App() {
         setSelectedGroupId(db.groups[0].id);
       }
     } catch (err: any) {
-      setVaultError(err.message || (lang === 'it' ? 'Errore Touch ID.' : 'Touch ID Error.'));
+      setVaultError(err.message || t.biometricsErrorShort);
       console.error(err);
     } finally {
       setLoading(false);
@@ -1971,7 +2159,13 @@ export default function App() {
   // 3. Vault Setup (First time login)
   if (isLoggedIn && !vaultPayload) {
     return (
-      <div className="flex items-center justify-center min-height-100vh w-full px-4 animate-fade-in">
+      <div className="flex items-center justify-center min-height-100vh w-full px-4 animate-fade-in relative">
+        <div className="absolute top-6 right-6">
+          <button onClick={toggleLang} className="btn btn-secondary flex items-center gap-1.5 py-1.5 px-3 text-xs">
+            <Globe size={13} /> {lang === 'it' ? 'English (EN)' : 'Italiano (IT)'}
+          </button>
+        </div>
+
         <div className="glass-panel w-full max-w-md p-8 animate-slide-up">
           <div className="flex flex-col items-center gap-2 mb-6">
             <div className="p-3 bg-purple-500/10 rounded-full border border-purple-500/20 text-purple-400">
@@ -2126,7 +2320,7 @@ export default function App() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={13} />
           <input
             type="text"
-            placeholder={lang === 'it' ? "Cerca applicazione o account..." : "Search apps or accounts..."}
+            placeholder={t.searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white/[0.06] border border-white/10 rounded-lg pl-9 pr-8 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.08] transition-all"
@@ -2143,14 +2337,24 @@ export default function App() {
 
         {/* Actions Right */}
         <div className="flex items-center gap-2.5">
+          {/* Selettore Lingua Globale */}
+          <button
+            onClick={toggleLang}
+            className="px-2.5 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-white/90 flex items-center gap-1.5 transition-all cursor-pointer"
+            title={t.switchLanguageTitle}
+          >
+            <Globe size={13} className="text-indigo-400" />
+            <span>{lang === 'it' ? 'IT' : 'EN'}</span>
+          </button>
+
           {/* Pulsante Verifica Aggiornamenti */}
           <button
             onClick={() => { setShowAboutModal(true); checkForUpdates(); }}
             className="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-white/90 flex items-center gap-2 transition-all cursor-pointer"
-            title="Verifica disponibilità aggiornamenti su GitHub"
+            title={t.updatesTooltip}
           >
             <RefreshCw size={12} className={`text-blue-400 ${isCheckingUpdate ? "animate-spin" : ""}`} />
-            <span>Aggiornamenti</span>
+            <span>{t.updates}</span>
             <span className="text-[10px] font-bold text-blue-400 bg-blue-500/20 px-1.5 py-0.5 rounded">v1.0.6</span>
           </button>
 
@@ -2161,7 +2365,7 @@ export default function App() {
               className="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-white/90 flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Download size={12} />
-              <span>Backup</span>
+              <span>{t.backup}</span>
               <ChevronDown size={11} className="text-zinc-400" />
             </button>
 
@@ -2175,7 +2379,7 @@ export default function App() {
                   className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer"
                 >
                   <Download size={13} className="text-purple-400 shrink-0" />
-                  <span>Esporta Backup Cifrato (.lockey)</span>
+                  <span>{t.exportEncryptedBackup}</span>
                 </button>
                 {isElectron ? (
                   <button
@@ -2183,12 +2387,12 @@ export default function App() {
                     className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer"
                   >
                     <Upload size={13} className="text-blue-400 shrink-0" />
-                    <span>Importa Backup (.lockey)</span>
+                    <span>{t.importEncryptedBackup}</span>
                   </button>
                 ) : (
                   <label className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 cursor-pointer transition-all">
                     <Upload size={13} className="text-blue-400 shrink-0" />
-                    <span>Importa Backup (.lockey)</span>
+                    <span>{t.importEncryptedBackup}</span>
                     <input
                       type="file"
                       accept=".lockey"
@@ -2199,7 +2403,7 @@ export default function App() {
                 )}
                 <label className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 cursor-pointer transition-all border-t border-white/5 pt-2">
                   <Plus size={13} className="text-emerald-400 shrink-0" />
-                  <span>Importa da file CSV</span>
+                  <span>{t.importCSVFile}</span>
                   <input
                     type="file"
                     accept=".csv"
@@ -2218,7 +2422,7 @@ export default function App() {
                   className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-200 hover:bg-white/10 flex items-center gap-2 transition-all cursor-pointer border-t border-white/5 pt-2"
                 >
                   <Shield size={13} className="text-amber-400 shrink-0" />
-                  <span>Audit di Sicurezza Password</span>
+                  <span>{t.securityAuditMenu}</span>
                 </button>
                 {isBiometricsSupported && (
                   <button
@@ -2240,7 +2444,7 @@ export default function App() {
           <button
             onClick={() => setShowAboutModal(true)}
             className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 flex items-center justify-center text-white/80 transition-all cursor-pointer"
-            title="Informazioni su LocKey & BiragoDev"
+            title={t.infoTooltip}
           >
             <Info size={14} />
           </button>
@@ -2249,10 +2453,10 @@ export default function App() {
           <button
             onClick={handleLock}
             className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-red-600/90 to-pink-600/90 hover:from-red-500 hover:to-pink-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-red-500/20 transition-all cursor-pointer"
-            title="Blocca immediatamente il Vault"
+            title={t.lockVaultTooltip}
           >
             <Lock size={12} className="stroke-[2.5]" />
-            <span>Blocca Vault</span>
+            <span>{t.lockVault}</span>
           </button>
         </div>
       </header>
@@ -2264,7 +2468,7 @@ export default function App() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 pt-4 pb-2.5">
             <span className="text-[11px] font-bold text-zinc-500 tracking-wider uppercase">
-              I TUOI GRUPPI
+              {t.yourGroups}
             </span>
             <button
               onClick={() => {
@@ -2273,7 +2477,7 @@ export default function App() {
                 setShowGroupModal(true);
               }}
               className="w-5 h-5 rounded-md bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 flex items-center justify-center transition-all cursor-pointer"
-              title="Crea Nuovo Gruppo"
+              title={t.newGroup}
             >
               <Plus size={12} className="stroke-[3]" />
             </button>
@@ -2284,7 +2488,7 @@ export default function App() {
             {!vaultDb || vaultDb.groups.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
                 <FolderPlus size={28} className="text-zinc-600 mb-2" />
-                <span className="text-xs text-zinc-500">Nessun gruppo</span>
+                <span className="text-xs text-zinc-500">{t.noGroups}</span>
               </div>
             ) : (
               vaultDb.groups.map((group) => {
@@ -2326,7 +2530,7 @@ export default function App() {
                           setShowGroupModal(true);
                         }}
                         className="p-1 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                        title="Rinomina Gruppo"
+                        title={t.renameGroup}
                       >
                         <Edit2 size={11} />
                       </button>
@@ -2336,7 +2540,7 @@ export default function App() {
                           requestDeleteGroup(group.id, group.name);
                         }}
                         className="p-1 rounded text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
-                        title="Elimina Gruppo"
+                        title={t.deleteGroup}
                       >
                         <Trash2 size={11} />
                       </button>
@@ -2346,10 +2550,6 @@ export default function App() {
               })
             )}
           </div>
-
-
-
-
 
           {/* Bottom Button + Footer BiragoDev */}
           <div className="p-3 border-t border-white/[0.06] flex flex-col gap-3">
@@ -2362,13 +2562,13 @@ export default function App() {
               className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600/85 to-blue-600/85 hover:from-purple-500 hover:to-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/20 transition-all cursor-pointer"
             >
               <Plus size={14} className="stroke-[2.5]" />
-              <span>Nuovo Gruppo</span>
+              <span>{t.newGroupBtn}</span>
             </button>
 
             <div className="flex items-center justify-between text-[11px] px-1 pt-0.5">
               <div className="flex items-center gap-1 text-emerald-400 font-medium">
                 <ShieldCheck size={12} />
-                <span className="text-zinc-400">AES-256 Locale</span>
+                <span className="text-zinc-400">{t.localAes}</span>
               </div>
               <a
                 href="https://www.biragodev.it"
@@ -2390,7 +2590,7 @@ export default function App() {
               <div className="flex items-center gap-2 min-w-0">
                 <Folder size={13} className="text-purple-400 shrink-0" />
                 <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider truncate">
-                  {searchTerm ? (lang === 'it' ? 'Risultati' : 'Search') : (selectedGroup?.name || t.appsTitle)}
+                  {searchTerm ? t.results : (selectedGroup?.name || t.appsTitle)}
                 </h3>
               </div>
               {!searchTerm && selectedGroupId && (
@@ -2469,7 +2669,7 @@ export default function App() {
                     const initial = (app.name || '?').charAt(0).toUpperCase();
                     const displaySub = app.url
                       ? app.url.replace(/^https?:\/\//, '')
-                      : app.credentials[0]?.username || (lang === 'it' ? 'Nessun account' : 'No account');
+                      : app.credentials[0]?.username || t.noAccount;
                     return (
                       <div
                         key={app.id}
@@ -2535,12 +2735,10 @@ export default function App() {
                   <div className="flex flex-col items-center justify-center text-center p-6 mt-12 gap-3">
                     <FolderPlus size={32} className="text-zinc-600" />
                     <div className="text-sm font-semibold text-zinc-300">
-                      {lang === 'it' ? 'Nessuna applicazione' : 'No applications'}
+                      {t.noApps}
                     </div>
                     <p className="text-xs text-zinc-500">
-                      {lang === 'it'
-                        ? `Aggiungi un sito o servizio dentro "${selectedGroup.name}".`
-                        : `Add an app or site to "${selectedGroup.name}".`}
+                      {t.noAppsInGroupDesc} "{selectedGroup.name}".
                     </p>
                   </div>
                 )
@@ -2548,12 +2746,10 @@ export default function App() {
                 <div className="flex flex-col items-center justify-center text-center p-6 mt-12 gap-3">
                   <Folder size={32} className="text-zinc-600" />
                   <div className="text-sm font-semibold text-zinc-300">
-                    {lang === 'it' ? 'Seleziona o crea un Gruppo' : 'Select or create a Group'}
+                    {t.selectOrCreateGroupTitle}
                   </div>
                   <p className="text-xs text-zinc-500">
-                    {lang === 'it'
-                      ? 'Crea un gruppo a sinistra per iniziare.'
-                      : 'Create a group on the left to start.'}
+                    {t.selectOrCreateGroupDesc}
                   </p>
                 </div>
               )}
@@ -2576,7 +2772,7 @@ export default function App() {
                   className="w-full py-2 px-3 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
                 >
                   <Plus size={14} className="text-blue-400" />
-                  <span>{lang === 'it' ? 'Aggiungi Applicazione' : 'Add Application'}</span>
+                  <span>{t.addAppBtn}</span>
                 </button>
               </div>
             )}
@@ -2614,9 +2810,9 @@ export default function App() {
                       ) : (
                         <div className="text-xs text-zinc-400 mt-0.5">
                           {selectedApp.credentials.length}{' '}
-                          {lang === 'it'
-                            ? `credenzial${selectedApp.credentials.length === 1 ? 'e' : 'i'} protett${selectedApp.credentials.length === 1 ? 'a' : 'e'}`
-                            : `credential${selectedApp.credentials.length === 1 ? '' : 's'}`}
+                          {selectedApp.credentials.length === 1
+                            ? t.credentialsProtectedSingular
+                            : t.credentialsProtectedPlural}
                         </div>
                       )}
                     </div>
@@ -2634,7 +2830,7 @@ export default function App() {
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:brightness-110 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/25 transition-all cursor-pointer"
                   >
                     <Plus size={14} strokeWidth={2.5} />
-                    <span>{lang === 'it' ? 'Nuova Credenziale' : 'Add Credential'}</span>
+                    <span>{t.newCredentialBtn}</span>
                   </button>
                 </div>
 
@@ -2646,12 +2842,10 @@ export default function App() {
                         <Key size={28} />
                       </div>
                       <h3 className="text-base font-bold text-white">
-                        {lang === 'it' ? 'Nessuna credenziale salvata' : 'No credentials saved'}
+                        {t.noCredentialsInAppTitle}
                       </h3>
                       <p className="text-xs text-zinc-400 max-w-xs">
-                        {lang === 'it'
-                          ? `Aggiungi il primo account o password per ${selectedApp.name}.`
-                          : `Add the first account or password for ${selectedApp.name}.`}
+                        {t.noCredentialsInAppDesc} {selectedApp.name}.
                       </p>
                       <button
                         onClick={() => {
@@ -2665,7 +2859,7 @@ export default function App() {
                         className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
                       >
                         <Plus size={14} />
-                        <span>{lang === 'it' ? 'Aggiungi Credenziale' : 'Add Credential'}</span>
+                        <span>{t.addCredentialBtn}</span>
                       </button>
                     </div>
                   ) : (
@@ -2711,7 +2905,7 @@ export default function App() {
                               <button
                                 onClick={() => togglePasswordVisibility(cred.id)}
                                 className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                title={visiblePasswords[cred.id] ? 'Nascondi' : 'Mostra'}
+                                title={visiblePasswords[cred.id] ? t.hidePassword : t.showPassword}
                               >
                                 {visiblePasswords[cred.id] ? <EyeOff size={13} /> : <Eye size={13} />}
                               </button>
@@ -2721,7 +2915,7 @@ export default function App() {
                             <button
                               onClick={() => copyToClipboard(cred.passwordCiphertext, t.passwordLabel)}
                               className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-zinc-300 hover:text-emerald-400 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-                              title="Copia Password"
+                              title={t.copyPasswordTitle}
                             >
                               <Copy size={12} />
                               <span>Password</span>
@@ -2732,7 +2926,7 @@ export default function App() {
                               <button
                                 onClick={() => copyToClipboard(cred.username, t.username)}
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
-                                title="Copia Username"
+                                title={t.copyUsernameTitle}
                               >
                                 <User size={13} />
                               </button>
@@ -2788,7 +2982,7 @@ export default function App() {
                               className="px-2 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             >
                               <Copy size={11} />
-                              <span>Copia</span>
+                              <span>{t.copyBtn}</span>
                             </button>
                           </div>
                         )}
@@ -2836,13 +3030,13 @@ export default function App() {
                                     </button>
                                     <button
                                       onClick={() => {
-                                        if (confirm(lang === 'it' ? "Ripristinare questa vecchia password?" : "Restore this old password?")) {
+                                        if (confirm(t.restoreOldPasswordConfirm)) {
                                           handleRestorePassword(cred.id, hist.passwordValue);
                                         }
                                       }}
                                       className="text-zinc-400 hover:text-purple-400 p-1 cursor-pointer"
                                       type="button"
-                                      title={lang === 'it' ? "Ripristina" : "Restore"}
+                                      title={t.restoreBtn}
                                     >
                                       <RefreshCw size={11} />
                                     </button>
@@ -2877,10 +3071,10 @@ export default function App() {
                   {/* Testo Hero */}
                   <div className="space-y-2">
                     <h2 className="text-xl font-bold text-white tracking-tight">
-                      Il tuo Vault LocKey è Sbloccato
+                      {t.vaultUnlockedTitle}
                     </h2>
                     <p className="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
-                      Seleziona un'applicazione a sinistra o creane una nuova per gestire le tue password.
+                      {t.vaultUnlockedSubtitle}
                     </p>
                   </div>
 
@@ -2893,12 +3087,12 @@ export default function App() {
 
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/12 border border-emerald-500/25 text-emerald-300 text-xs font-semibold">
                       <WifiOff size={12} className="text-emerald-400" />
-                      <span>Zero-Network</span>
+                      <span>{t.zeroNetwork}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/12 border border-blue-500/25 text-blue-300 text-xs font-semibold">
                       <ShieldCheck size={12} className="text-blue-400" />
-                      <span>Sicurezza Locale</span>
+                      <span>{t.localSecurity}</span>
                     </div>
                   </div>
                 </div>
@@ -2969,11 +3163,23 @@ export default function App() {
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-white">LocKey Desktop</h3>
-              <p className="text-xs text-purple-400 font-semibold mt-0.5">Versione v1.0.6</p>
+              <h3 className="text-lg font-bold text-white">{t.aboutAppTitle}</h3>
+              <p className="text-xs text-purple-400 font-semibold mt-0.5">{t.aboutVersionPrefix} v1.0.6</p>
               <p className="text-xs text-zinc-400 mt-2">
-                Gestore di password locale, ultra-sicuro e 100% offline cifrato in AES-256-GCM.
+                {t.aboutDescription}
               </p>
+            </div>
+
+            {/* Language toggle inside About modal */}
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={toggleLang}
+                className="btn btn-secondary flex items-center gap-1.5 py-1 px-3 text-xs"
+              >
+                <Globe size={13} className="text-indigo-400" />
+                <span>{lang === 'it' ? 'Passa a Inglese (Switch to English)' : 'Passa a Italiano (Switch to Italian)'}</span>
+              </button>
             </div>
 
             <div className="w-full border-t border-white/10 pt-4 flex flex-col gap-2">
@@ -2983,7 +3189,7 @@ export default function App() {
                 className="w-full py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
               >
                 <RefreshCw size={13} className={isCheckingUpdate ? 'animate-spin text-blue-400' : 'text-blue-400'} />
-                <span>{isCheckingUpdate ? 'Verifica in corso...' : 'Verifica disponibilità aggiornamenti'}</span>
+                <span>{isCheckingUpdate ? t.checkingUpdatesText : t.checkUpdatesBtn}</span>
               </button>
 
               {updateStatus && (
@@ -3000,13 +3206,13 @@ export default function App() {
                   className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30"
                 >
                   <ExternalLink size={13} />
-                  <span>Scarica Aggiornamento</span>
+                  <span>{t.downloadUpdateBtn}</span>
                 </a>
               )}
             </div>
 
             <div className="pt-2 text-[11px] text-zinc-500">
-              Sviluppato da{' '}
+              {t.developedBy}{' '}
               <a
                 href="https://www.biragodev.it"
                 target="_blank"
@@ -3121,9 +3327,9 @@ export default function App() {
                           setAppPasswordInput(cryptoHelper.generateSecurePassword(16, true, true))
                         }
                         className="btn btn-secondary p-2 px-3"
-                        title={lang === 'it' ? "Genera Password" : "Generate Password"}
+                        title={t.generatePassword}
                       >
-                        {lang === 'it' ? "Genera" : "Generate"}
+                        {t.generate}
                       </button>
                     </div>
                     {renderPasswordStrength(appPasswordInput)}
@@ -3173,7 +3379,7 @@ export default function App() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="glass-panel w-full max-w-md p-6 animate-slide-up">
             <h3 className="text-lg font-bold text-white mb-4">
-              {editingCredId ? t.editAccount : (lang === 'it' ? 'Nuovo Account per ' : 'New Account for ') + selectedApp?.name}
+              {editingCredId ? t.editAccount : `${t.newAccountFor} ${selectedApp?.name || ''}`}
             </h3>
             <form onSubmit={handleSaveCred} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
@@ -3203,9 +3409,9 @@ export default function App() {
                       setCredPasswordInput(cryptoHelper.generateSecurePassword(16, true, true))
                     }
                     className="btn btn-secondary p-2 px-3"
-                    title={lang === 'it' ? "Genera Password" : "Generate Password"}
+                    title={t.generatePassword}
                   >
-                    {lang === 'it' ? "Genera" : "Generate"}
+                    {t.generate}
                   </button>
                 </div>
                 {renderPasswordStrength(credPasswordInput)}
